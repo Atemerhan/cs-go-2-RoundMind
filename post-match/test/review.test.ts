@@ -77,8 +77,8 @@ describe("reviewMatch", () => {
         winner: "them",
         chosenBuy: "full",
         options: [
-          { buyClass: "full", expectedValue: 0.2, reason: { en: "full", zh: "全装" } },
-          { buyClass: "save", expectedValue: 0.5, reason: { en: "save", zh: "存枪" } },
+          { buyClass: "full", expectedValue: 0.25, reason: { en: "full", zh: "全装" } },
+          { buyClass: "save", expectedValue: 0.75, reason: { en: "save", zh: "存枪" } },
         ],
       },
       {
@@ -86,14 +86,14 @@ describe("reviewMatch", () => {
         winner: "us",
         chosenBuy: "force",
         options: [
-          { buyClass: "force", expectedValue: 0.1, reason: { en: "force", zh: "强起" } },
-          { buyClass: "eco", expectedValue: 0.4, reason: { en: "eco", zh: "ECO" } },
+          { buyClass: "force", expectedValue: 0.25, reason: { en: "force", zh: "强起" } },
+          { buyClass: "eco", expectedValue: 0.75, reason: { en: "eco", zh: "ECO" } },
         ],
       },
     ];
     const review = reviewMatch(rounds);
     expect(review.leaks.map((leak) => leak.roundNumber)).toEqual([3, 8]);
-    expect(review.leaks.every((leak) => leak.evCost === 0.3)).toBe(true);
+    expect(review.leaks.every((leak) => leak.evCost === 0.5)).toBe(true);
   });
 
   it("does not call the engine when the round already logged its options", () => {

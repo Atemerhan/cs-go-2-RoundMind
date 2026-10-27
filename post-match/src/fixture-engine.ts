@@ -15,9 +15,13 @@ import { ReviewError } from "./errors.js";
  * no loss-bonus ladder, kill rewards, or other CS2 rule numbers — those stay
  * in kohi's EconomyEngine. Unknown rounds throw rather than invent an EV.
  */
+export interface FixtureLookupEngine extends EconomyEngine<EconomyEvaluationInput> {
+  evaluateBuyOptions: (input: EconomyEvaluationInput) => BuyOptionEvaluation[];
+}
+
 export function createFixtureLookupEngine(
   byRound: ReadonlyMap<number, readonly BuyOptionEvaluation[]>,
-): EconomyEngine<EconomyEvaluationInput> {
+): FixtureLookupEngine {
   return {
     recommend(input) {
       const options = lookup(byRound, input.roundNumber);

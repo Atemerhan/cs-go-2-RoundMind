@@ -15,7 +15,7 @@ export {
   type MoneyBand,
 } from "./economy-engine.js";
 export { ReviewError, type ReviewErrorCode } from "./errors.js";
-export { createFixtureLookupEngine, fixtureTable } from "./fixture-engine.js";
+export { createFixtureLookupEngine, fixtureTable, type FixtureLookupEngine } from "./fixture-engine.js";
 export {
   blueprintEngineTable,
   blueprintMatch,
