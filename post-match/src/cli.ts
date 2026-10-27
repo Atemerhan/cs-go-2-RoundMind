@@ -6,7 +6,7 @@ const engine = createFixtureLookupEngine(blueprintEngineTable);
 const review = reviewMatch(blueprintRoundsForEngine(), engine);
 
 console.log("RoundMind post-match review");
-console.log("Source: fixture lookup standing in for zhasi's EconomyEngine (packages/engine is not on main yet).");
+console.log("Source: fixture lookup. zhasi's evaluateFreeze returns one buy and enemy.band, not per-class expected value.");
 console.log(`Rounds: ${review.roundsConsidered}. Leaks: ${review.totalLeaks}. Showing ${review.leaks.length}.`);
 console.log("");
 

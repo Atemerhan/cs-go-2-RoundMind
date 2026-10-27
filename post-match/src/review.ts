@@ -1,9 +1,10 @@
 import {
   asOptionList,
+  PER_OPTION_EV_GAP,
   type BuyClass,
   type BuyOptionEvaluation,
   type EconomyEngine,
-  type EconomyEvaluationInput,
+  type FreezeSnapshot,
 } from "./economy-engine.js";
 import { ReviewError } from "./errors.js";
 import { narrateLeak } from "./narrate.js";
@@ -13,13 +14,14 @@ export const EV_LEAK_EPSILON = 1e-9;
 
 export type RoundWinner = "us" | "them";
 
-export interface PlayedRound<TState = EconomyEvaluationInput> {
+export interface PlayedRound<TState = FreezeSnapshot> {
   roundNumber: number;
   winner: RoundWinner;
   chosenBuy: BuyClass;
   /**
-   * Passed through to zhasi's EconomyEngine when this round has no logged
-   * option table. The review does not read money rules out of it.
+   * Freeze snapshot for `evaluateFreeze` when this round has no logged
+   * option table. Enemy cash is not a field. `winner` is the post-match
+   * result of this round and is not part of the snapshot's history.
    */
   state?: TState;
   /** Engine-computed EV captured at freeze time, when the log already has it. */
@@ -68,10 +70,14 @@ interface ResolvedRound {
  * reported and are not used as the ranking key: a won round can still be a
  * leak, and a correct save can still lose the round.
  *
+ * zhasi's `evaluateFreeze` returns one buy and `enemy.band`. It has no
+ * per-class expected value, so a snapshot alone cannot be ranked. Logged
+ * options cover that gap until the engine exposes a table.
+ *
  * Logged `options` are the record of what the engine said at freeze time,
  * so they are used as-is and the engine is not called again for that round.
  */
-export function reviewMatch<TState = EconomyEvaluationInput>(
+export function reviewMatch<TState = FreezeSnapshot>(
   rounds: readonly PlayedRound<TState>[],
   engine?: EconomyEngine<TState>,
   options: ReviewOptions = {},
@@ -115,13 +121,13 @@ function resolveRound<TState>(
   if (!round.state) {
     throw new ReviewError(
       "missing-ev",
-      `Round ${round.roundNumber} has no logged options and no state to send to zhasi's EconomyEngine.`,
+      `Round ${round.roundNumber} has no logged options and no freeze snapshot to send to evaluateFreeze.`,
     );
   }
   if (!engine) {
     throw new ReviewError(
       "missing-ev",
-      `Round ${round.roundNumber} needs zhasi's EconomyEngine. Pass engine options on the round, or inject EconomyEngine.`,
+      `Round ${round.roundNumber} needs a logged option table or zhasi's evaluateFreeze. ${PER_OPTION_EV_GAP}`,
     );
   }
 
@@ -149,7 +155,7 @@ function optionsFromEngine<TState>(
   }
   throw new ReviewError(
     "missing-ev",
-    `Round ${roundNumber}: zhasi's recommend() returned ${recommendation.recommendation} without a per-class expectedValue table. evaluateBuyOptions() or recommend().options is required to rank leaks.`,
+    `Round ${roundNumber}: ${PER_OPTION_EV_GAP} Returned buy ${recommendation.recommendation}. Pass a logged options table to rank this leak.`,
   );
 }
 
@@ -223,10 +229,9 @@ function assertRound(round: PlayedRound<unknown>): void {
 
 function saveEligibleCountOf(state: unknown): number | undefined {
   if (!state || typeof state !== "object") return undefined;
-  const value = (state as { saveEligibleCount?: unknown }).saveEligibleCount;
-  if (value === undefined) return undefined;
-  if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
-    throw new ReviewError("invalid-round", "saveEligibleCount must be a non-negative integer.");
-  }
-  return value;
+  const players = (state as { ourPlayers?: unknown }).ourPlayers;
+  if (!Array.isArray(players)) return undefined;
+  return players.filter((player) => {
+    return Boolean(player) && typeof player === "object" && (player as { hasPrimary?: unknown }).hasPrimary === true;
+  }).length;
 }

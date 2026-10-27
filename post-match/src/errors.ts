@@ -5,7 +5,8 @@ export type ReviewErrorCode =
   | "duplicate-buy"
   | "invalid-option"
   | "invalid-round"
-  | "invalid-reason";
+  | "invalid-reason"
+  | "enemy-cash";
 
 export class ReviewError extends Error {
   readonly code: ReviewErrorCode;

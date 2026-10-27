@@ -54,9 +54,9 @@ Contributors do not add the following, including as a "debug" path, a private fl
 
 ## How the line is held / 边界怎么守住
 
-The post-match review calls zhasi's `EconomyEngine` and ranks lines the engine already scored. It does not open a second input path. A future GSI listener stays read-only. Facts (the engine) and guesses (a later read layer) stay separate, and a guess is not presented as a fact.
+The post-match review calls zhasi's `evaluateFreeze` and ranks lines only when an option table was already scored. It does not open a second input path, and it does not send enemy cash. A future GSI listener stays read-only. Facts (the engine) and guesses (a later read layer) stay separate, and a guess is not presented as a fact.
 
-赛后复盘调用 zhasi 的 `EconomyEngine`，只对引擎已经算过的购买线排序。它不开第二条输入通道。以后的 GSI 监听保持只读。事实（引擎）和猜测（以后的解读层）分开，猜测不会被说成事实。
+赛后复盘调用 zhasi 的 `evaluateFreeze`。对手现金不是输入。只有已经算好的购买选项表才会用来给决策漏损排序。它不开第二条输入通道。以后的 GSI 监听保持只读。事实（引擎）和猜测（以后的解读层）分开，猜测不会被说成事实。
 
 See the ownership table in the root [README](../README.md).
 

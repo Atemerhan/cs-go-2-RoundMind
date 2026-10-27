@@ -1,28 +1,46 @@
-import type { BuyOptionEvaluation, EconomyEvaluationInput } from "./economy-engine.js";
+import type { BuyOptionEvaluation, CompletedRound, FreezeSnapshot, PlayerSnapshot, Side } from "./economy-engine.js";
 import type { PlayedRound } from "./review.js";
 import { fixtureTable } from "./fixture-engine.js";
 
 /**
  * Blueprint-shaped match (Master Blueprint v1.0, Part 3.3).
  *
- * Expected values are a canned option table for the lookup double. They are
- * not CS2 rule outputs. Replace the table with zhasi's `evaluateBuyOptions`
- * when `packages/engine` lands; keep the played buys.
+ * Each `state` is an `evaluateFreeze` snapshot: own roster, side, and public
+ * `history`. Enemy cash is not on the snapshot. `enemy.band` would come back
+ * from zhasi's engine. Round `reason` values are elimination, bomb_explode,
+ * bomb_defuse, or time.
  *
- * Once that engine is wired, any dollar amount in these fixtures stays
- * consistent with the verified rows in docs/economy-rules.json (PR #2:
- * 32 VERIFIED / 7 UNVERIFIED). Do not re-implement the ladder here. The
- * verified rows fixtures must not contradict: planter $300
- * (objective.plant_personal); each T receives $600 when a plant is defused
- * (objective.plant_team_if_defused), not $800; a win steps the loss bonus
- * down one tier (loss_bonus.win_steps_down) and does not reset it to $1400;
- * a half starts at loss count 1, so a pistol loss pays $1900
- * (loss_bonus.half_start_and_pistol). Leave the 7 UNVERIFIED rows out.
+ * The option tables are canned expected values for the lookup double.
+ * `evaluateFreeze` does not return per-class EV yet, so these tables stay
+ * until it does. They are not a second loss-bonus ladder.
  *
- * Round 5 is the freeze-time example played correctly: eco against a 2-loss
- * opponent, so it is not a leak.
+ * Dollar amounts, once a fixture states a payout, stay consistent with
+ * docs/economy-rules.json (PR #2: 32 VERIFIED / 7 UNVERIFIED): planter $300;
+ * each T receives $600 when a plant is defused, not $800; a win steps the
+ * loss bonus down one tier and does not reset it to $1400; a half starts at
+ * loss count 1, so a pistol loss pays $1900. Leave the 7 UNVERIFIED rows out.
+ *
+ * Round 5 is the freeze-time example played correctly: eco against a side
+ * that just lost, so it is not a leak.
  * Round 7 is the post-match example: full-buying into a 4-man save.
  */
+
+function players(cash: readonly number[], primaries: number): PlayerSnapshot[] {
+  return cash.map((amount, index) => ({
+    id: `p${index + 1}`,
+    cash: amount,
+    hasPrimary: index < primaries,
+  }));
+}
+
+function historyBefore(roundNumber: number, closing: readonly CompletedRound[]): CompletedRound[] {
+  const needed = roundNumber - 1;
+  const opening: CompletedRound[] = Array.from({ length: Math.max(0, needed - closing.length) }, (_, index) => ({
+    winner: (index % 2 === 0 ? "T" : "CT") as Side,
+    reason: "elimination",
+  }));
+  return [...opening, ...closing].slice(-needed);
+}
 
 function option(
   buyClass: BuyOptionEvaluation["buyClass"],
@@ -93,64 +111,62 @@ const round14Options: BuyOptionEvaluation[] = [
   option("save", 0.38, "Saving donates the round the team came to win.", "存枪把这分白送给了对方。"),
 ];
 
-export interface FixtureRound extends PlayedRound<EconomyEvaluationInput> {
+export interface FixtureRound extends PlayedRound<FreezeSnapshot> {
   options: readonly BuyOptionEvaluation[];
-  state: EconomyEvaluationInput;
+  state: FreezeSnapshot;
 }
 
 function played(
   roundNumber: number,
   winner: "us" | "them",
   chosenBuy: FixtureRound["chosenBuy"],
-  state: EconomyEvaluationInput,
+  cash: readonly number[],
+  primaries: number,
+  closing: readonly CompletedRound[],
   options: readonly BuyOptionEvaluation[],
 ): FixtureRound {
-  return { roundNumber, winner, chosenBuy, state, options };
+  return {
+    roundNumber,
+    winner,
+    chosenBuy,
+    options,
+    state: {
+      roundNumber,
+      ourSide: "CT",
+      overtimeLimit: 1,
+      ourPlayers: players(cash, primaries),
+      history: historyBefore(roundNumber, closing),
+    },
+  };
 }
 
+const ctClosed: CompletedRound[] = [
+  { winner: "CT", reason: "bomb_defuse" },
+  { winner: "CT", reason: "time", alive: { T: 0 } },
+];
+
 export const blueprintMatch: readonly FixtureRound[] = [
-  played(5, "us", "eco", {
-    roundNumber: 5,
-    score: { us: 2, them: 2 },
-    ourMoney: [1800, 1700, 2100, 1600, 1900],
-    ourLossStreak: 0,
-    theirLossStreak: 2,
-    enemyEconomyBand: { min: 3500, max: 5000 },
-  }, round5Options),
-  played(7, "them", "full", {
-    roundNumber: 7,
-    score: { us: 3, them: 3 },
-    ourMoney: [4200, 4600, 3900, 4400, 800],
-    ourLossStreak: 1,
-    theirLossStreak: 0,
-    saveEligibleCount: 4,
-    enemyEconomyBand: { min: 3000, max: 4700 },
-  }, round7Options),
-  played(9, "us", "force", {
-    roundNumber: 9,
-    score: { us: 4, them: 4 },
-    ourMoney: [2300, 2100, 2500, 800, 1900],
-    ourLossStreak: 1,
-    theirLossStreak: 1,
-    saveEligibleCount: 2,
-  }, round9Options),
-  played(11, "them", "full", {
-    roundNumber: 11,
-    score: { us: 5, them: 5 },
-    ourMoney: [3600, 1500, 1400, 2800, 1200],
-    ourLossStreak: 2,
-    theirLossStreak: 0,
-    saveEligibleCount: 1,
-  }, round11Options),
-  played(14, "them", "save", {
-    roundNumber: 14,
-    score: { us: 6, them: 7 },
-    ourMoney: [4700, 4500, 4300, 4100, 3900],
-    ourLossStreak: 0,
-    theirLossStreak: 3,
-    enemyEconomyBand: { min: 800, max: 1800 },
-    saveEligibleCount: 0,
-  }, round14Options),
+  played(5, "us", "eco", [1800, 1700, 2100, 1600, 1900], 0, [
+    { winner: "T", reason: "elimination" },
+    { winner: "CT", reason: "elimination" },
+    ...ctClosed,
+  ], round5Options),
+  played(7, "them", "full", [4200, 4600, 3900, 4400, 800], 4, [
+    { winner: "T", reason: "bomb_explode" },
+    { winner: "CT", reason: "elimination" },
+  ], round7Options),
+  played(9, "us", "force", [2300, 2100, 2500, 800, 1900], 2, [
+    { winner: "T", reason: "elimination" },
+    { winner: "CT", reason: "time", alive: { T: 2 } },
+  ], round9Options),
+  played(11, "them", "full", [3600, 1500, 1400, 2800, 1200], 1, [
+    { winner: "T", reason: "elimination" },
+    { winner: "CT", reason: "bomb_defuse" },
+  ], round11Options),
+  played(14, "them", "save", [4700, 4500, 4300, 4100, 3900], 0, [
+    { winner: "T", reason: "bomb_explode" },
+    { winner: "CT", reason: "elimination" },
+  ], round14Options),
 ];
 
 export const blueprintEngineTable = fixtureTable(
@@ -158,7 +174,7 @@ export const blueprintEngineTable = fixtureTable(
 );
 
 /** Same rounds with the option table removed, so the lookup engine must answer. */
-export function blueprintRoundsForEngine(): PlayedRound<EconomyEvaluationInput>[] {
+export function blueprintRoundsForEngine(): PlayedRound<FreezeSnapshot>[] {
   return blueprintMatch.map((round) => ({
     roundNumber: round.roundNumber,
     winner: round.winner,

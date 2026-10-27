@@ -23,7 +23,7 @@ RoundMind 只读官方 GSI 和公开经济规则，在冻结时间和赛后开�
 | CS2 Game State Integration live feed | koki | `src/gsi/` |
 | Post-match decision-leak review, this compliance section, and `docs/COMPLIANCE.md` | ahi | `post-match/`, `docs/COMPLIANCE.md` |
 
-Zhasi owns the rule numbers and the `EconomyEngine` implementation. The review calls that engine. Kohi polishes the calculator UI after zhasi's engine PR merges. Koki normalizes official GSI into a `GameState` and can pass it through `adaptEconomyEngine`. Raw GSI parsing stays in `src/gsi/`.
+Zhasi owns the rule numbers and `@roundmind/engine`. The review calls `evaluateFreeze` ([PR #3](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/3)). Kohi polishes the calculator UI after that PR merges. Koki emits the same freeze snapshot — `roundNumber`, `ourSide`, `ourPlayers`, `history` — and does not send enemy cash. Raw GSI parsing stays in `src/gsi/`.
 
 Verified Premier/Competitive numbers are zhasi's [docs/economy-rules.json](docs/economy-rules.json) ([PR #2](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/2): 32 `VERIFIED`, 7 `UNVERIFIED`), with the source checklist in [docs/economy-rules-sources.md](docs/economy-rules-sources.md). `post-match/` does not re-implement that table. Once `packages/engine` lands, fixture states and any dollar amounts in this package stay consistent with the verified rows. Values the fixtures must follow:
 
@@ -34,7 +34,7 @@ Verified Premier/Competitive numbers are zhasi's [docs/economy-rules.json](docs/
 
 The seven `UNVERIFIED` rows stay out of fixtures until zhasi checks them. The demo lookup's expected-value table is canned review input, not a second copy of the ladder.
 
-经济引擎、规则数字和网页计算器归 zhasi。kohi 在引擎 PR 合并后打磨计算器界面。GSI 直播数据归 koki。赛后决策复盘、合规章节和 `docs/COMPLIANCE.md` 归 ahi。已核对的数字在 `docs/economy-rules.json`（32 条 VERIFIED，7 条 UNVERIFIED）。引擎落地后，赛后样例里的金额与这些已核对数字保持一致，包括：埋包者 $300；炸弹被拆时每名 T $600（不是 $800）；获胜后连败奖励只降一档，不回到 $1400；半场手枪局从连败层数 1 起算，手枪局失利是 $1900。`post-match/` 不另写一套经济规则。
+经济引擎、规则数字和网页计算器归 zhasi，入口是 `evaluateFreeze`。kohi 在引擎 PR 合并后打磨计算器界面。koki 的 GSI 交出同一份冻结快照：`roundNumber`、`ourSide`、`ourPlayers`、`history`。对手现金不是输入，`enemy.band` 由 `history` 推出。回合结束原因是 `elimination`、`bomb_explode`、`bomb_defuse`、`time`。赛后决策复盘、合规章节和 `docs/COMPLIANCE.md` 归 ahi。已核对的数字在 `docs/economy-rules.json`（32 条 VERIFIED，7 条 UNVERIFIED）。引擎落地后，赛后样例里的金额与这些已核对数字保持一致，包括：埋包者 $300；炸弹被拆时每名 T $600（不是 $800）；获胜后连败奖励只降一档，不回到 $1400；半场手枪局从连败层数 1 起算，手枪局失利是 $1900。`post-match/` 不另写一套经济规则。`evaluateFreeze` 目前不返回每种购买的期望价值，漏判排序仍用记录下来的选项表。
 
 ## Run the post-match review locally / 本地运行赛后复盘
 
@@ -49,35 +49,26 @@ npm test
 npm run review
 ```
 
-`npm run review` prints the three largest expected-value leaks. Until zhasi's `packages/engine` is on main, the demo uses a fixture lookup that returns canned option tables. Dollar amounts in those fixtures follow `docs/economy-rules.json` once that engine is wired; the lookup itself does not encode the ladder.
+`npm run review` prints the three largest expected-value leaks from the fixture table. `evaluateFreeze` returns one buy and `enemy.band`, not a per-class expected value, so the demo does not ask it to rank leaks. Dollar amounts in those fixtures follow `docs/economy-rules.json` once a payout is stated; the lookup itself does not encode the ladder.
 
-## Interface assumptions for zhasi and koki / 给 zhasi 和 koki 的接口约定
+## Interface for zhasi and koki / 给 zhasi 和 koki 的接口
 
-Canonical types live in `post-match/src/economy-engine.ts`. Assumed zhasi surface:
+Canonical consumer types live in `post-match/src/economy-engine.ts`. Zhasi's call, from `@roundmind/engine`:
 
 ```ts
-type BuyClass = "full" | "force" | "eco" | "save";
-
-interface EconomyEngine {
-  recommend(input: EconomyEvaluationInput): {
-    recommendation: BuyClass; // buyClass is also accepted by adaptEconomyEngine
-    reason: string | { en: string; zh: string };
-    enemyEconomyBand?: { min: number; max: number };
-    buyingPower?: number;
-    options?: BuyOptionEvaluation[];
-  };
-  evaluateBuyOptions?(input: EconomyEvaluationInput): BuyOptionEvaluation[];
-}
-
-interface BuyOptionEvaluation {
-  buyClass: BuyClass;
-  expectedValue: number; // horizon EV in the engine's units; higher is better
-  reason: string | { en: string; zh: string };
-}
+evaluateFreeze({
+  roundNumber,    // 1-based round about to be played
+  ourSide,        // "T" | "CT"
+  overtimeLimit,  // 1 Premier, 0 repeated OT
+  ourPlayers,     // { id?, cash, hasPrimary, equipmentValue? }[]
+  history,        // { winner: "T" | "CT", reason, alive? }[], oldest first
+})
 ```
 
-`reviewMatch(rounds, engine)` ranks leaks as `best.expectedValue - chosen.expectedValue` and returns the three largest gaps. A round may instead carry a logged `options` table from freeze time; logged tables are not sent back through the engine.
+`reason` on a completed round is `elimination | bomb_explode | bomb_defuse | time`. Enemy cash is not an input. The result used here is `buy` (`full | force | eco | save | null`), `reason.code`, `reason.lossBonus`, and `enemy.band` (`averageLow` / `averageHigh`, plus per-player and team min/max). `adaptEconomyEngine({ evaluateFreeze })` maps that result.
 
-Koki's stub `{ recommendation, reason: string, enemyEconomyBand?: { min, max } }` adapts, and it cannot rank leaks until per-class `expectedValue` is present. Map `GameState` onto `EconomyEvaluationInput` (round, score, own money, loss streaks, optional band). Enemy positions are not part of the input.
+`reviewMatch` ranks leaks as `best.expectedValue - chosen.expectedValue`. `evaluateFreeze` does not return that table yet. A round can carry a logged `options` list, and a later `evaluateBuyOptions` on the same object will be used when zhasi adds one. Until then the fixture lookup ranks the blueprint match.
 
-`post-match/` 里的样例引擎只是按回合号查表。规则数字以 zhasi 的 `docs/economy-rules.json` 和日后的 `packages/engine` 为准。
+Koki emits `roundNumber`, `ourSide`, `ourPlayers`, and `history` in this shape. Enemy positions are not part of it.
+
+`post-match/` 里的样例引擎只是按回合号查表。规则数字以 zhasi 的 `docs/economy-rules.json` 和 `evaluateFreeze` 为准。

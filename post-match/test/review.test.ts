@@ -144,7 +144,7 @@ describe("reviewMatch", () => {
         roundNumber: 1,
         winner: "us",
         chosenBuy: "save",
-        state: { ...blueprintMatch[0]!.state, saveEligibleCount: 4 },
+        state: blueprintMatch[0]!.state,
         options: [
           { buyClass: "full", expectedValue: 0.2, reason: { en: "full", zh: "全装" } },
           { buyClass: "save", expectedValue: 0.2, reason: { en: "save", zh: "存枪" } },
@@ -238,44 +238,120 @@ describe("reviewMatch", () => {
 });
 
 describe("adaptEconomyEngine", () => {
-  it("accepts a buyClass field and koki's recommendation field", () => {
-    const adapted = adaptEconomyEngine({
-      recommend() {
-        return {
-          buyClass: "save",
-          reason: { en: "Save the rifles.", zh: "把步枪存下来。" },
-          enemyEconomyBand: { min: 2000, max: 4500 },
-          buyingPower: 18400,
-          options: [
-            { buyClass: "full", expectedValue: 0.12, reason: "Too expensive." },
-            { buyClass: "save", expectedValue: 0.64, reason: { en: "Save the rifles.", zh: "把步枪存下来。" } },
-          ],
-        };
-      },
-    });
-    const recommendation = adapted.recommend(blueprintMatch[1]!.state);
-    expect(recommendation.recommendation).toBe("save");
-    expect(recommendation.buyingPower).toBe(18400);
-    expect(recommendation.enemyEconomyBand).toEqual({ min: 2000, max: 4500 });
-    expect(recommendation.options?.[0]?.reason).toEqual({ en: "Too expensive.", zh: "Too expensive." });
+  const band = {
+    minPerPlayer: 3000,
+    maxPerPlayer: 5000,
+    minTeam: 15000,
+    maxTeam: 25000,
+    averageLow: 3700,
+    averageHigh: 4500,
+  };
 
-    const koki = adaptEconomyEngine({
-      recommend() {
+  function freezeEngine(seen: unknown[]) {
+    return adaptEconomyEngine({
+      evaluateFreeze(input) {
+        seen.push(input);
         return {
-          recommendation: "eco",
-          reason: "engine not wired",
-          enemyEconomyBand: { min: 0, max: 0 },
+          buy: "eco",
+          reason: {
+            code: "eco_bank",
+            lossBonus: 2400,
+            averageCash: 1820,
+            enemyMin: 3700,
+            enemyMax: 4500,
+            ourLossCount: 0,
+            enemyLossCount: 2,
+          },
+          our: { averageCash: 1820, lossBonusIfLose: 1900, cash: [1800] },
+          enemy: { band },
         };
       },
     });
-    expect(koki.recommend(blueprintMatch[0]!.state).recommendation).toBe("eco");
-    expect(() => reviewMatch(blueprintRoundsForEngine().slice(0, 1), koki)).toThrow(ReviewError);
+  }
+
+  it("maps evaluateFreeze and withholds enemy cash from the call", () => {
+    const seen: unknown[] = [];
+    const engine = freezeEngine(seen);
+    const snapshot = blueprintMatch[0]!.state;
+    const recommendation = engine.recommend(snapshot);
+
+    expect(recommendation.recommendation).toBe("eco");
+    expect(recommendation.reasonCode).toBe("eco_bank");
+    expect(recommendation.lossBonus).toBe(2400);
+    expect(recommendation.ourAverageCash).toBe(1820);
+    expect(recommendation.enemyBand).toEqual(band);
+    expect(recommendation.options).toBeUndefined();
+    expect(seen).toEqual([snapshot]);
+    expect(seen[0]).not.toHaveProperty("enemyEconomyBand");
+    expect(seen[0]).not.toHaveProperty("knownEnemyMoney");
+    expect(Object.keys(seen[0] as object).sort()).toEqual(
+      ["history", "ourPlayers", "ourSide", "overtimeLimit", "roundNumber"].sort(),
+    );
   });
 
-  it("ranks a match through evaluateBuyOptions on the adapted engine", () => {
+  it("accepts the GSI handoff and the round-end reason enum", () => {
+    const seen: unknown[] = [];
+    const engine = freezeEngine(seen);
+    const handoff = {
+      roundNumber: 5,
+      ourSide: "CT" as const,
+      ourPlayers: [{ id: "p1", cash: 1600, hasPrimary: false }],
+      history: [
+        { winner: "T" as const, reason: "elimination" as const },
+        { winner: "T" as const, reason: "bomb_explode" as const },
+        { winner: "CT" as const, reason: "bomb_defuse" as const },
+        { winner: "CT" as const, reason: "time" as const, alive: { T: 2 } },
+      ],
+    };
+    expect(engine.recommend(handoff).recommendation).toBe("eco");
+    expect(() =>
+      engine.recommend({
+        ...handoff,
+        history: [{ winner: "T", reason: "defuse" }],
+      } as unknown as typeof handoff),
+    ).toThrow(/bomb_explode/);
+  });
+
+  it("refuses enemy cash on the snapshot", () => {
+    const engine = freezeEngine([]);
+    expect(() =>
+      engine.recommend({
+        ...blueprintMatch[0]!.state,
+        knownEnemyMoney: 4000,
+      } as unknown as typeof blueprintMatch[0]["state"]),
+    ).toThrow(ReviewError);
+    try {
+      engine.recommend({
+        ...blueprintMatch[0]!.state,
+        enemyEconomyBand: { min: 1, max: 2 },
+      } as unknown as typeof blueprintMatch[0]["state"]);
+    } catch (error) {
+      expect(error).toMatchObject({ code: "enemy-cash" });
+    }
+  });
+
+  it("does not invent per-buy EV from evaluateFreeze", () => {
+    const engine = freezeEngine([]);
+    expect(() => reviewMatch(blueprintRoundsForEngine().slice(0, 1), engine)).toThrow(/per-class expectedValue/);
+  });
+
+  it("ranks a match when a future option table is also supplied", () => {
     const engine = adaptEconomyEngine({
-      recommend() {
-        return { recommendation: "eco" as const, reason: "unused" };
+      evaluateFreeze() {
+        return {
+          buy: "eco",
+          reason: { code: "eco_bank", lossBonus: 1900 },
+          enemy: {
+            band: {
+              minPerPlayer: 0,
+              maxPerPlayer: 0,
+              minTeam: 0,
+              maxTeam: 0,
+              averageLow: 0,
+              averageHigh: 0,
+            },
+          },
+        };
       },
       evaluateBuyOptions(state: { roundNumber: number }) {
         return blueprintEngineTable.get(state.roundNumber);
