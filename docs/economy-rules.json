@@ -1,0 +1,674 @@
+{
+  "meta": {
+    "game": "Counter-Strike 2",
+    "profile": "premier_competitive_bomb_defusal",
+    "asOf": "2026-10-27",
+    "purpose": "Structured mirror of docs/economy-rules-sources.md for a later diff against rules.ts. This file does not implement the economy engine.",
+    "gameFileCommit": {
+      "repo": "https://github.com/SteamTracking/GameTracking-CS2",
+      "sha": "04d3e4a67ac60168d0e79594c69a2116bb3b7278",
+      "date": "2026-10-22"
+    },
+    "premierConfigOrder": [
+      "game/csgo/cfg/gamemode_competitive.cfg",
+      "game/csgo/cfg/gamemode_competitive_tmm.cfg"
+    ],
+    "notes": [
+      "Dollar amounts are per player unless a row says otherwise.",
+      "Hostage-map awards exist in gamemode_competitive.cfg but are omitted; Premier bomb defusal does not use them.",
+      "cash_team_* values are paid in full to each player on that team. Valve's 2018 note states the round-1 loser receives $1900, which is the per-player cash_team_loser_bonus result, not a pool split five ways."
+    ]
+  },
+  "rules": [
+    {
+      "id": "money.start",
+      "value": 800,
+      "unit": "USD_per_player",
+      "what": "Pistol-round and half-reset starting money (mp_startmoney). Competitive cfg sets 800; convar text is the amount each player gets when they reset.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/game/csgo/cfg/gamemode_competitive.cfg",
+        "quote": "mp_startmoney 800",
+        "date": "2026-10-22",
+        "also": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/DumpSource2/convars.txt — mp_startmoney: \"amount of money each player gets when they reset\""
+      }
+    },
+    {
+      "id": "money.cap",
+      "value": 16000,
+      "unit": "USD_per_player",
+      "what": "Maximum money a player can hold (mp_maxmoney). Cash above the cap is not kept.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/DumpSource2/convars.txt",
+        "quote": "mp_maxmoney 16000 — maximum amount of money allowed in a player's account",
+        "date": "2026-10-22",
+        "also": "Same value in gamemode_competitive.cfg"
+      }
+    },
+    {
+      "id": "money.after_round",
+      "value": 0,
+      "unit": "USD_per_player",
+      "what": "Flat cash added after every round (mp_afterroundmoney). Competitive sets 0; round income is only the award convars.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/game/csgo/cfg/gamemode_competitive.cfg",
+        "quote": "mp_afterroundmoney 0",
+        "date": "2026-10-22"
+      }
+    },
+    {
+      "id": "match.max_rounds",
+      "value": 24,
+      "unit": "rounds",
+      "what": "Regulation length. MR12: 12 rounds per half, 24 regulation rounds maximum, first to 13. mp_match_can_clinch 1 ends the match once a team has won more than half of mp_maxrounds.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://www.counter-strike.net/newsentry/3644028846252008595",
+        "quote": "So with CS2, we’re moving to a maximum of 24 rounds in regulation time (with a 6 round overtime in case of a tie) for Premier, Competitive, and the Majors.",
+        "date": "2023-09-27",
+        "also": "gamemode_competitive.cfg: mp_maxrounds 24; mp_halftime 1; mp_match_can_clinch 1 — \"team can clinch match win early if they win > 1/2 total rounds\""
+      }
+    },
+    {
+      "id": "match.half_reset",
+      "value": {
+        "startMoney": 800,
+        "startingLosses": 1
+      },
+      "unit": "USD_and_loss_count",
+      "what": "At the start of each half, money resets to mp_startmoney and the loss count is mp_starting_losses (1). Competitive cfg sets both. The 2019 note still describes the half-start loss count; no later Valve economy note changed it.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://blog.counter-strike.net/2019/03/23488/",
+        "quote": "Teams still begin the half with a loss count of 1.",
+        "date": "2019-03-13",
+        "also": "gamemode_competitive.cfg (2026-10-22): mp_starting_losses 1; mp_startmoney 800; mp_halftime 1. 2018-10-09 note: \"In Competitive Matchmaking, both teams are now considered to start the half with a one-round ‘losing streak’… Instead of $1400, the Round 1 loser receives $1900, then $2400 for a subsequent loss, etc.\" The 2019 note replaced the full reset-on-win, not the half-start count."
+      }
+    },
+    {
+      "id": "match.round_time_seconds",
+      "value": 115,
+      "unit": "seconds",
+      "what": "Round length. mp_roundtime and mp_roundtime_defuse are 1.92 minutes (1:55).",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/game/csgo/cfg/gamemode_competitive.cfg",
+        "quote": "mp_roundtime 1.92 / mp_roundtime_defuse 1.92",
+        "date": "2026-10-22"
+      }
+    },
+    {
+      "id": "match.buy_time_seconds",
+      "value": 20,
+      "unit": "seconds",
+      "what": "Buy time in competitive.cfg (mp_buytime). Not overridden by the Premier tmm cfg.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/game/csgo/cfg/gamemode_competitive.cfg",
+        "quote": "mp_buytime 20",
+        "date": "2026-10-22"
+      }
+    },
+    {
+      "id": "match.freeze_time_seconds",
+      "value": {
+        "premierMatchmaking": 20,
+        "competitiveCfgBeforeTmmOverride": 15
+      },
+      "unit": "seconds",
+      "what": "Freeze time. gamemode_competitive.cfg sets 15. Premier/matchmaking then loads gamemode_competitive_tmm.cfg, which sets mp_freezetime 20. Valve's Major rulebook says Premier defaults are competitive.cfg followed by competitive_tmm.cfg.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/game/csgo/cfg/gamemode_competitive_tmm.cfg",
+        "quote": "mp_freezetime 20",
+        "date": "2026-10-22",
+        "also": "https://github.com/ValveSoftware/counter-strike_rules_and_regs/blob/621b7d91b0a236044aed62a357fddc863dfaea49/major-supplemental-rulebook.md (2026-10-07): \"All server convars are to be set to Premier defaults (by first loading cfg/gamemode_competitive.cfg and then loading cfg/gamemode_competitive_tmm.cfg)\""
+      }
+    },
+    {
+      "id": "match.bomb_timer_seconds",
+      "value": 40,
+      "unit": "seconds",
+      "what": "C4 timer. Not set in the competitive cfg, so the convar default applies.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/DumpSource2/convars.txt",
+        "quote": "mp_c4timer 40 — how long from when the C4 is armed until it blows",
+        "date": "2026-10-22"
+      }
+    },
+    {
+      "id": "overtime.rounds",
+      "value": 6,
+      "unit": "rounds",
+      "what": "Each overtime block is mp_overtime_maxrounds 6 (MR3: two halves of 3). Not overridden by the Premier tmm cfg. Valve's 2023 announcement says a 6 round overtime.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/DumpSource2/convars.txt",
+        "quote": "mp_overtime_maxrounds 6 — When overtime is enabled play additional rounds to determine winner",
+        "date": "2026-10-22",
+        "also": "Valve, 2023-09-27, https://www.counter-strike.net/newsentry/3644028846252008595 — \"with a 6 round overtime in case of a tie\""
+      }
+    },
+    {
+      "id": "overtime.start_money",
+      "value": 10000,
+      "unit": "USD_per_player",
+      "what": "Money assigned to every player at the start of each overtime half. This replaces the previous balance; it does not add to a $16000 bank and it is not $12500.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/DumpSource2/convars.txt",
+        "quote": "mp_overtime_startmoney 10000 — Money assigned to all players at start of every overtime half",
+        "date": "2026-10-22",
+        "also": "Neither gamemode_competitive.cfg nor gamemode_competitive_tmm.cfg overrides it. The Major rulebook does not override it either, so Majors inherit the Premier default of 10000."
+      }
+    },
+    {
+      "id": "overtime.limit_premier",
+      "value": 1,
+      "unit": "overtime_blocks",
+      "what": "Premier/matchmaking plays at most one overtime block. A 15-15 tie is a draw. FACEIT's published default is different: overtime is replayed if the block splits 3-3.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/game/csgo/cfg/gamemode_competitive_tmm.cfg",
+        "quote": "mp_overtime_enable 1 / mp_overtime_limit 1",
+        "date": "2026-10-22",
+        "also": "convars.txt: mp_overtime_limit — \"When overtime is enabled, only so many overtimes can be played\" (bare default 0 = no cap). FACEIT help, updated 2025-01-17: \"If both teams win three rounds, overtime will be played again.\" https://support.faceit.com/hc/en-us/articles/17063642043292-Setup-Game-settings-Counter-Strike-2"
+      }
+    },
+    {
+      "id": "overtime.limit_major",
+      "value": 0,
+      "unit": "overtime_blocks",
+      "what": "Valve Major servers use Premier defaults, then set mp_overtime_limit 0 so overtime repeats until there is a winner.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://github.com/ValveSoftware/counter-strike_rules_and_regs/blob/621b7d91b0a236044aed62a357fddc863dfaea49/major-supplemental-rulebook.md",
+        "quote": "mp_overtime_limit 0",
+        "date": "2026-10-07"
+      }
+    },
+    {
+      "id": "loss_bonus.table",
+      "value": {
+        "0": 1400,
+        "1": 1900,
+        "2": 2400,
+        "3": 2900,
+        "4+": 3400
+      },
+      "unit": "USD_per_player",
+      "what": "Loss-bonus payout by current loss count. Formula: 1400 + 500 * min(lossCount, 4). Base cash_team_loser_bonus 1400, step cash_team_loser_bonus_consecutive_rounds 500, cap mp_consecutive_loss_max 4. No Valve note through 2026-07-08 changed this ladder.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://blog.counter-strike.net/2019/03/23488/",
+        "quote": "With 0 Losses: $1400 — With 1 Loss: $1900 — With 2 Losses: $2400 — With 3 Losses: $2900 — With 4+ Losses: $3400",
+        "date": "2019-03-13",
+        "also": "2026-10-22 gamemode_competitive.cfg still sets cash_team_loser_bonus 1400 and cash_team_loser_bonus_consecutive_rounds 500. convars.txt: mp_consecutive_loss_max 4."
+      }
+    },
+    {
+      "id": "loss_bonus.half_start_and_pistol",
+      "value": {
+        "startingLosses": 1,
+        "firstLossOfHalf": 1900
+      },
+      "unit": "USD_per_player",
+      "what": "Halves start at loss count 1, so the pistol-round loser is paid the 1-loss tier ($1900), not $1400. $1400 is the 0-loss tier and is only reached after a win has stepped the count down to 0. Pay the current count, then increment: the 2018 note says the round-1 loser receives $1900 and the next loss $2400, which is false if the count is incremented before the payout.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://blog.counter-strike.net/2018/10/21333/",
+        "quote": "Instead of $1400, the Round 1 loser receives $1900, then $2400 for a subsequent loss, etc.",
+        "date": "2018-10-09",
+        "also": "2019-03-13: \"Teams still begin the half with a loss count of 1.\" 2026 competitive cfg: mp_starting_losses 1."
+      }
+    },
+    {
+      "id": "loss_bonus.win_steps_down",
+      "value": {
+        "mp_consecutive_loss_aversion": 1,
+        "onWin": "lossCount = max(0, lossCount - 1)",
+        "onLoss": "pay table[min(lossCount, 4)], then lossCount += 1"
+      },
+      "unit": "state_machine",
+      "what": "A win does not reset the loss bonus to the floor. Aversion default 1, and competitive.cfg does not override it. 2019: a win reduces the loss counter by one (minimum 0). 2026 convar text: 0 = full reset, 1 = first win steps down, 2 = first win holds and the step starts on the second win.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://blog.counter-strike.net/2019/03/23488/",
+        "quote": "Previously, a win would reset the round loss bonus. Now, a win reduces the loss counter by one.",
+        "date": "2019-03-13",
+        "also": "convars.txt 2026-10-22: mp_consecutive_loss_aversion 1 — \"How loss streak is affected with round win: 0 = win fully resets loss bonus, 1 = first win steps down loss bonus, 2 = first win holds loss bonus and step down starting with second win\""
+      }
+    },
+    {
+      "id": "loss_bonus.deep_streak_cap",
+      "value": null,
+      "unit": "USD_per_player",
+      "what": "Unresolved: if the stored loss count is allowed to grow past 4, one win does not change the next payout until the count falls back to 4 or below (still $3400). If the stored count is capped at 4, one win from the cap drops the next payout from $3400 to $2900. The 2019 note says the count increases by one with no stored cap, and \"4+\" only caps the payout. The 2026 phrase \"steps down loss bonus\" can be read either as \"decrement the counter\" or as \"the dollar amount drops on that win.\" Do not hard-code the community shortcut \"any win drops $500\" for streaks deeper than 4 until this is checked on a current server.",
+      "status": "UNVERIFIED",
+      "source": {
+        "url": "https://blog.counter-strike.net/2019/03/23488/",
+        "quote": "The count increases by one after every loss, and decreases by one after every win (minimum 0). … With 4+ Losses: $3400",
+        "date": "2019-03-13",
+        "also": "No 2023–2026 patch note in the CS2 economy timeline states which reading the server uses."
+      }
+    },
+    {
+      "id": "round_win.elimination",
+      "value": 3250,
+      "unit": "USD_per_player",
+      "what": "Win by eliminating the enemy team on a bomb map (cash_team_elimination_bomb_map). Same for both sides.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/game/csgo/cfg/gamemode_competitive.cfg",
+        "quote": "cash_team_elimination_bomb_map 3250",
+        "date": "2026-10-22"
+      }
+    },
+    {
+      "id": "round_win.time_expired",
+      "value": 3250,
+      "unit": "USD_per_player",
+      "what": "CT win because the round timer expired without a detonation (cash_team_win_by_time_running_out_bomb).",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/game/csgo/cfg/gamemode_competitive.cfg",
+        "quote": "cash_team_win_by_time_running_out_bomb 3250",
+        "date": "2026-10-22"
+      }
+    },
+    {
+      "id": "round_win.bomb_detonation",
+      "value": 3500,
+      "unit": "USD_per_player",
+      "what": "T win by bomb explosion (cash_team_terrorist_win_bomb). This is the team win award. It is not $3250, and the separate \"planted but defused\" award does not also apply.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/game/csgo/cfg/gamemode_competitive.cfg",
+        "quote": "cash_team_terrorist_win_bomb 3500",
+        "date": "2026-10-22",
+        "also": "The plant team award convar is named cash_team_planted_bomb_but_defused, so it is the defused-plant case, not the detonation case."
+      }
+    },
+    {
+      "id": "round_win.defuse",
+      "value": 3500,
+      "unit": "USD_per_player",
+      "what": "CT win by defuse in competitive/Premier. gamemode_competitive.cfg sets cash_team_win_by_defusing_bomb 3500. The bare convar default in convars.txt is 3250; that default is not the Premier number. A flat \"$3250 for every win\" is wrong for defuse and for bomb detonation.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/game/csgo/cfg/gamemode_competitive.cfg",
+        "quote": "cash_team_win_by_defusing_bomb 3500",
+        "date": "2026-10-22",
+        "also": "convars.txt bare default: cash_team_win_by_defusing_bomb 3250"
+      }
+    },
+    {
+      "id": "round_win.consecutive_winner_bonus",
+      "value": 0,
+      "unit": "USD_per_player",
+      "what": "Extra team cash for consecutive wins. Bare default 0; competitive cfg does not set it. Win streaks do not add a winner bonus. They only step the loss count down.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/DumpSource2/convars.txt",
+        "quote": "cash_team_winner_bonus_consecutive_rounds 0",
+        "date": "2026-10-22"
+      }
+    },
+    {
+      "id": "objective.plant_personal",
+      "value": 300,
+      "unit": "USD_to_planter_only",
+      "what": "Personal award to the player who plants (cash_player_bomb_planted). It is not $300 to every Terrorist. UI string: \"+$%s1 for planting the C4\".",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/game/csgo/cfg/gamemode_competitive.cfg",
+        "quote": "cash_player_bomb_planted 300",
+        "date": "2026-10-22",
+        "also": "csgo_english.txt: Player_Cash_Award_Bomb_Planted = \"+$%s1 for planting the C4\""
+      }
+    },
+    {
+      "id": "objective.defuse_personal",
+      "value": 300,
+      "unit": "USD_to_defuser_only",
+      "what": "Personal award to the player who defuses (cash_player_bomb_defused), on top of the $3500 team defuse-win award. UI: \"+$%s1 for defusing the C4\".",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/game/csgo/cfg/gamemode_competitive.cfg",
+        "quote": "cash_player_bomb_defused 300",
+        "date": "2026-10-22"
+      }
+    },
+    {
+      "id": "objective.plant_team_if_defused",
+      "value": 600,
+      "unit": "USD_per_terrorist",
+      "what": "Team award to each Terrorist when the bomb was planted and then defused. Reduced from $800 on 2024-05-23. It is not paid on detonation (see round_win.bomb_detonation). It is not an $800 team plant bonus.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://www.counter-strike.net/news/updates",
+        "quote": "Reduced the terrorist team award when bomb was planted but defused from $800 to $600, to decrease the impact of the first-round on subsequent rounds",
+        "date": "2024-05-23",
+        "also": "2026-10-22 gamemode_competitive.cfg: cash_team_planted_bomb_but_defused 600. UI: Team_Cash_Award_Planted_Bomb_But_Defused = \"+$%s1 team income for planting the bomb\""
+      }
+    },
+    {
+      "id": "objective.plant_team_stacks_with_loss_bonus",
+      "value": true,
+      "unit": "boolean",
+      "what": "The $600 defused-plant award is in addition to the loss bonus. They are separate team-income lines. Valve's reason for the 2024 cut was to reduce the effect of a pistol round on later rounds, which is the pistol-loss ($1900) plus plant ($600) snowball, not a $600 total.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://www.counter-strike.net/news/updates",
+        "quote": "Reduced the terrorist team award when bomb was planted but defused from $800 to $600, to decrease the impact of the first-round on subsequent rounds",
+        "date": "2024-05-23",
+        "also": "Distinct UI tokens Team_Cash_Award_Loser_Bonus and Team_Cash_Award_Planted_Bomb_But_Defused in csgo_english.txt (2026-10-22)."
+      }
+    },
+    {
+      "id": "objective.plant_award_timing",
+      "value": null,
+      "unit": "timing",
+      "what": "Whether cash_player_bomb_planted is added at the moment of the plant (and kept if the planter dies) or only at round end is not stated in the patch notes or the convar text.",
+      "status": "UNVERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/game/csgo/cfg/gamemode_competitive.cfg",
+        "quote": "cash_player_bomb_planted 300",
+        "date": "2026-10-22"
+      }
+    },
+    {
+      "id": "kill.default",
+      "value": 300,
+      "unit": "USD_to_killer",
+      "what": "Default enemy-kill award before the weapon's m_nKillAward overrides it (cash_player_killed_enemy_default). Weapon file kill awards below are the live overrides as of 2026-10-22.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/game/csgo/cfg/gamemode_competitive.cfg",
+        "quote": "cash_player_killed_enemy_default 300",
+        "date": "2026-10-22"
+      }
+    },
+    {
+      "id": "kill.by_class",
+      "value": {
+        "pistol_including_cz75": 300,
+        "smg_except_p90": 600,
+        "p90": 300,
+        "shotgun_except_xm1014": 900,
+        "xm1014": 600,
+        "rifle": 300,
+        "ssg08": 300,
+        "awp": 100,
+        "g3sg1_and_scar20": 300,
+        "m249_and_negev": 300,
+        "knife": 1500,
+        "taser": 100,
+        "he_flash_smoke_molotov_incendiary_decoy": 300
+      },
+      "unit": "USD_to_killer",
+      "what": "Kill award by weapon class, including the exceptions people still quote from before 2024-04-25. CZ75 is $300 (was $100). Zeus is $100 (was $0). XM1014 is $600 (was $900). P90 stays $300, not the SMG $600. AWP is $100. Knife is $1500. Full per-weapon list is weaponKillAwards.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://www.counter-strike.net/newsentry/4202497395513061959",
+        "quote": "Reduced XM1014 kill reward from $900 to $600 ($300 in Casual). Increased CZ75-Auto kill reward from $100 to $300 ($150 in Casual). Increased Zeus kill reward from $0 to $100 ($50 in Casual).",
+        "date": "2024-04-25",
+        "also": "weapons.vdata m_nKillAward at commit 04d3e4a67ac60168d0e79594c69a2116bb3b7278 (2026-10-22). Casual amounts in the patch note are not the competitive numbers."
+      }
+    },
+    {
+      "id": "kill.team_kill_penalty",
+      "value": -300,
+      "unit": "USD_to_killer",
+      "what": "Personal penalty for killing a teammate (cash_player_killed_teammate). UI: \"-$%s1 penalty for killing a friendly\". Friendly fire is on in competitive.cfg.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/game/csgo/cfg/gamemode_competitive.cfg",
+        "quote": "cash_player_killed_teammate -300",
+        "date": "2026-10-22"
+      }
+    },
+    {
+      "id": "kill.ct_team_award_per_dead_t",
+      "value": 50,
+      "unit": "USD_per_ct_per_dead_t",
+      "what": "In Competitive modes, each CT receives $50 for each Terrorist eliminated that round, win or lose. Convar cash_team_per_dead_enemy 50. Same cash_team mechanism as the loss bonus: the figure is what each CT receives, not a $50 pool split across the team. Five dead Ts is $250 for each CT.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://www.counter-strike.net/newsentry/529852487375519749",
+        "quote": "In Competitive modes, Counter-Terrorists now receive a $50 team award for each Terrorist eliminated in a round",
+        "date": "2025-07-16",
+        "also": "Season post mirrored at the same date: \"win or lose, CTs now receive a shared team award for each T eliminated in the round\". convars.txt: cash_team_per_dead_enemy 50. UI token Team_Cash_Award_Dead_Terrorists."
+      }
+    },
+    {
+      "id": "kill.t_team_award_per_dead_ct",
+      "value": null,
+      "unit": "USD_per_t_per_dead_ct",
+      "what": "The localization file also has Team_Cash_Award_Dead_CTs (\"team income for N eliminated CTs\"). Valve's 2025-07-16 note only grants the $50 award to Counter-Terrorists. There is a single convar, cash_team_per_dead_enemy, with no second team-specific value in the cfg. Do not assume Terrorists receive $50 per dead CT.",
+      "status": "UNVERIFIED",
+      "source": {
+        "url": "https://www.counter-strike.net/newsentry/529852487375519749",
+        "quote": "In Competitive modes, Counter-Terrorists now receive a $50 team award for each Terrorist eliminated in a round",
+        "date": "2025-07-16"
+      }
+    },
+    {
+      "id": "save.no_equipment_value_threshold",
+      "value": null,
+      "unit": "USD_equipment",
+      "what": "There is no competitive convar that cancels the loss bonus because a survivor's equipment is worth more than a threshold. Searched convars.txt (2026-10-22) for equipment, save, and loss-bonus forfeiture. The blueprint's \"save penalty that zeros the loss bonus\" is not an equipment-value rule. Do not invent a threshold such as $1000 or $1500.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/DumpSource2/convars.txt",
+        "quote": "No convar describes forfeiting loss bonus based on equipment value. mp_equipment_reset_rounds 0 — \"Reset all player equipment every N rounds (0 for never)\" — is unrelated.",
+        "date": "2026-10-22"
+      }
+    },
+    {
+      "id": "save.timeout_zero_income_string",
+      "value": 0,
+      "unit": "USD",
+      "what": "The game has a distinct round-end line for running out of time: +$0. It does not name an equipment threshold.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/game/csgo/pak01_dir/resource/csgo_english.txt",
+        "quote": "Team_Cash_Award_no_income = \"+$0 penalty for running out of time\"",
+        "date": "2026-10-22"
+      }
+    },
+    {
+      "id": "save.who_loses_income_on_timeout",
+      "value": null,
+      "unit": "rule",
+      "what": "Community rule: a Terrorist who is still alive when the clock expires and the bomb was not planted receives $0 loss bonus; dead Terrorists still receive the full loss bonus; CTs who survive a lost round still receive it. The 2026 string Team_Cash_Award_Loser_Zero is \"-$%s1 team income for dead players on losing team\", which does not cleanly confirm that dead players are paid the full bonus (the token is a minus). Wiki and forum posts are not treated as verification. Confirm on a current server before encoding this as the save/force rule.",
+      "status": "UNVERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/game/csgo/pak01_dir/resource/csgo_english.txt",
+        "quote": "Team_Cash_Award_Loser_Zero = \"-$%s1 team income for dead players on losing team\"",
+        "date": "2026-10-22"
+      }
+    },
+    {
+      "id": "save.suicide_round_income",
+      "value": null,
+      "unit": "USD",
+      "what": "2016 Valve note replaced \"elimination of round-end income\" on suicide or disconnect with compensation to a living enemy equal to the missed kill reward. The 2026 file still has both Team_Cash_Award_no_income_suicide (\"+$0 penalty for suiciding\") and Player_Cash_Award_ExplainSuicide_* compensation strings. Whether the 2026 server still zeroes the victim's round income, only pays the enemy, or does both, is not settled by those two texts.",
+      "status": "UNVERIFIED",
+      "source": {
+        "url": "https://blog.counter-strike.net/2016/06/14740/",
+        "quote": "Replaced the penalty for the suicide or disconnection of a player. Instead of the elimination of round-end income, a living enemy player now receives compensation equal to the missed kill reward opportunity.",
+        "date": "2016-06-09",
+        "also": "csgo_english.txt 2026-10-22 still contains both the +$0 suicide penalty token and the suicide-compensation tokens."
+      }
+    },
+    {
+      "id": "shorthanded.premier_amount_and_delay",
+      "value": {
+        "cash_team_bonus_shorthanded": 1000,
+        "rounds_before_eligible": 2
+      },
+      "unit": "USD_and_rounds",
+      "what": "Premier competitive.cfg sets the shorthanded team award to $1000. Bare convar default is 0. Eligibility requires the team to have been shorthanded for the previous 2 rounds (mp_shorthanded_cash_bonus_round_delay). Major rulebook sets cash_team_bonus_shorthanded back to 0.",
+      "status": "VERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/game/csgo/cfg/gamemode_competitive.cfg",
+        "quote": "cash_team_bonus_shorthanded 1000",
+        "date": "2026-10-22",
+        "also": "convars.txt: mp_shorthanded_cash_bonus_round_delay 2 — \"number of previous rounds that a team needs to have been shorthanded before they are eligible for the short-handed bonus\". Major rulebook 2026-10-07 sets cash_team_bonus_shorthanded 0. UI: \"+$%s1 team income for being short-handed\"."
+      }
+    },
+    {
+      "id": "shorthanded.multiplier_and_kicks",
+      "value": null,
+      "unit": "formula",
+      "what": "Not stated by Valve: whether $1000 is once per surviving player, or $1000 times the number of missing teammates. mp_shorthanded_cash_bonus_ignore_kicked is true. Its description only says it \"determines whether kicked players are included\" and does not define which boolean value includes them. The name says ignore. Do not guess the kick polarity or the per-missing-player multiplier.",
+      "status": "UNVERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/DumpSource2/convars.txt",
+        "quote": "mp_shorthanded_cash_bonus_ignore_kicked true — Determines whether kicked players are included in the assessment for short-handedness",
+        "date": "2026-10-22"
+      }
+    },
+    {
+      "id": "overtime.loss_count_reset",
+      "value": null,
+      "unit": "loss_count",
+      "what": "Overtime money is assigned at each OT half (verified above). Whether that assignment also resets the loss count to mp_starting_losses (1), the way a regulation half does, is not in the convar text or in a patch note.",
+      "status": "UNVERIFIED",
+      "source": {
+        "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/DumpSource2/convars.txt",
+        "quote": "mp_overtime_startmoney 10000 — Money assigned to all players at start of every overtime half",
+        "date": "2026-10-22"
+      }
+    }
+  ],
+  "weaponPrices": {
+    "status": "VERIFIED",
+    "unit": "USD",
+    "source": {
+      "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/game/csgo/pak01_dir/scripts/weapons.vdata",
+      "quote": "m_nPrice on each weapon block",
+      "date": "2026-10-22"
+    },
+    "patchNotes": [
+      {
+        "date": "2024-05-23",
+        "url": "https://www.counter-strike.net/news/updates",
+        "quote": "Reduced the price of the M4A4 from $3100 to $3000. Incendiary Grenade: Reduced price from $600 to $500"
+      },
+      {
+        "date": "2025-01-28",
+        "url": "https://www.hltv.org/news/40860/famas-price-reduced-to-1950-mp9-crouching-accuracy-nerfed-in-premier-season-two-update",
+        "quote": "M4A4 price reduced to $2,900. FAMAS accuracy improved and price reduced to $1,950"
+      },
+      {
+        "date": "2026-01-21",
+        "url": "https://www.hltv.org/news/43689/anubis-mp7-and-mp5-sd-receive-changes-in-latest-cs2-update",
+        "quote": "Minor adjustments to the MP7 and MP5-SD: Reduced price by $100. Reduced price of the PP-Bizon by $100."
+      }
+    ],
+    "items": {
+      "weapon_glock": 200,
+      "weapon_hkp2000": 200,
+      "weapon_usp_silencer": 200,
+      "weapon_p250": 300,
+      "weapon_elite": 300,
+      "weapon_fiveseven": 500,
+      "weapon_tec9": 500,
+      "weapon_cz75a": 500,
+      "weapon_deagle": 700,
+      "weapon_revolver": 600,
+      "weapon_nova": 1050,
+      "weapon_xm1014": 2000,
+      "weapon_mag7": 1300,
+      "weapon_sawedoff": 1100,
+      "weapon_mac10": 1050,
+      "weapon_mp9": 1250,
+      "weapon_mp7": 1400,
+      "weapon_mp5sd": 1400,
+      "weapon_ump45": 1200,
+      "weapon_p90": 2350,
+      "weapon_bizon": 1300,
+      "weapon_galilar": 1800,
+      "weapon_famas": 1950,
+      "weapon_ak47": 2700,
+      "weapon_m4a1": 2900,
+      "weapon_m4a1_silencer": 2900,
+      "weapon_sg556": 3000,
+      "weapon_aug": 3300,
+      "weapon_ssg08": 1700,
+      "weapon_awp": 4750,
+      "weapon_g3sg1": 5000,
+      "weapon_scar20": 5000,
+      "weapon_m249": 5200,
+      "weapon_negev": 1700,
+      "weapon_taser": 200,
+      "weapon_flashbang": 200,
+      "weapon_hegrenade": 300,
+      "weapon_smokegrenade": 300,
+      "weapon_molotov": 400,
+      "weapon_incgrenade": 500,
+      "weapon_decoy": 50,
+      "item_kevlar": 650,
+      "item_assaultsuit": 1000,
+      "item_defuser": 400
+    }
+  },
+  "weaponKillAwards": {
+    "status": "VERIFIED",
+    "unit": "USD",
+    "source": {
+      "url": "https://github.com/SteamTracking/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/game/csgo/pak01_dir/scripts/weapons.vdata",
+      "quote": "m_nKillAward on each weapon block. Knife prefab and weapon_bayonet are 1500; every listed knife uses that award.",
+      "date": "2026-10-22"
+    },
+    "items": {
+      "weapon_glock": 300,
+      "weapon_hkp2000": 300,
+      "weapon_usp_silencer": 300,
+      "weapon_p250": 300,
+      "weapon_elite": 300,
+      "weapon_fiveseven": 300,
+      "weapon_tec9": 300,
+      "weapon_cz75a": 300,
+      "weapon_deagle": 300,
+      "weapon_revolver": 300,
+      "weapon_nova": 900,
+      "weapon_xm1014": 600,
+      "weapon_mag7": 900,
+      "weapon_sawedoff": 900,
+      "weapon_mac10": 600,
+      "weapon_mp9": 600,
+      "weapon_mp7": 600,
+      "weapon_mp5sd": 600,
+      "weapon_ump45": 600,
+      "weapon_p90": 300,
+      "weapon_bizon": 600,
+      "weapon_galilar": 300,
+      "weapon_famas": 300,
+      "weapon_ak47": 300,
+      "weapon_m4a1": 300,
+      "weapon_m4a1_silencer": 300,
+      "weapon_sg556": 300,
+      "weapon_aug": 300,
+      "weapon_ssg08": 300,
+      "weapon_awp": 100,
+      "weapon_g3sg1": 300,
+      "weapon_scar20": 300,
+      "weapon_m249": 300,
+      "weapon_negev": 300,
+      "weapon_taser": 100,
+      "weapon_knife": 1500,
+      "weapon_flashbang": 300,
+      "weapon_hegrenade": 300,
+      "weapon_smokegrenade": 300,
+      "weapon_molotov": 300,
+      "weapon_incgrenade": 300,
+      "weapon_decoy": 300
+    }
+  }
+}
