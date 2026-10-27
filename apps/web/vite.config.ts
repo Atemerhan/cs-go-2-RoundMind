@@ -13,5 +13,19 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    proxy: gsiProxy(),
+  },
+  preview: {
+    proxy: gsiProxy(),
   },
 });
+
+/** The listener binds 127.0.0.1:3000 and does not send CORS headers. */
+function gsiProxy() {
+  return {
+    "/gsi": {
+      target: "http://127.0.0.1:3000",
+      rewrite: (path: string) => path.replace(/^\/gsi/, "") || "/",
+    },
+  };
+}
