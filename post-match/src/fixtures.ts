@@ -9,6 +9,16 @@ import { fixtureTable } from "./fixture-engine.js";
  * not CS2 rule outputs. Replace the table with zhasi's `evaluateBuyOptions`
  * when `packages/engine` lands; keep the played buys.
  *
+ * Once that engine is wired, any dollar amount in these fixtures stays
+ * consistent with the verified rows in docs/economy-rules.json (PR #2:
+ * 32 VERIFIED / 7 UNVERIFIED). Do not re-implement the ladder here. The
+ * verified rows fixtures must not contradict: planter $300
+ * (objective.plant_personal); each T receives $600 when a plant is defused
+ * (objective.plant_team_if_defused), not $800; a win steps the loss bonus
+ * down one tier (loss_bonus.win_steps_down) and does not reset it to $1400;
+ * a half starts at loss count 1, so a pistol loss pays $1900
+ * (loss_bonus.half_start_and_pistol). Leave the 7 UNVERIFIED rows out.
+ *
  * Round 5 is the freeze-time example played correctly: eco against a 2-loss
  * opponent, so it is not a leak.
  * Round 7 is the post-match example: full-buying into a 4-man save.

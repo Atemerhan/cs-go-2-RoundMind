@@ -25,7 +25,16 @@ RoundMind 只读官方 GSI 和公开经济规则，在冻结时间和赛后开�
 
 Zhasi owns the rule numbers and the `EconomyEngine` implementation. The review calls that engine. Kohi polishes the calculator UI after zhasi's engine PR merges. Koki normalizes official GSI into a `GameState` and can pass it through `adaptEconomyEngine`. Raw GSI parsing stays in `src/gsi/`.
 
-经济引擎、规则数字和网页计算器归 zhasi。kohi 在引擎 PR 合并后打磨计算器界面。GSI 直播数据归 koki。赛后决策复盘、合规章节和 `docs/COMPLIANCE.md` 归 ahi。
+Verified Premier/Competitive numbers are zhasi's [docs/economy-rules.json](docs/economy-rules.json) ([PR #2](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/2): 32 `VERIFIED`, 7 `UNVERIFIED`), with the source checklist in [docs/economy-rules-sources.md](docs/economy-rules-sources.md). `post-match/` does not re-implement that table. Once `packages/engine` lands, fixture states and any dollar amounts in this package stay consistent with the verified rows. Values the fixtures must follow:
+
+- The planter receives $300 (`objective.plant_personal`).
+- A defused bomb pays each Terrorist $600 (`objective.plant_team_if_defused`), on top of the loss bonus. The old $800 team plant award is not the current number.
+- A win steps the loss count down one tier (`loss_bonus.win_steps_down`). The next loss does not jump back to the $1400 floor.
+- Each half starts at loss count 1, so a pistol loss pays $1900 (`loss_bonus.half_start_and_pistol`).
+
+The seven `UNVERIFIED` rows stay out of fixtures until zhasi checks them. The demo lookup's expected-value table is canned review input, not a second copy of the ladder.
+
+经济引擎、规则数字和网页计算器归 zhasi。kohi 在引擎 PR 合并后打磨计算器界面。GSI 直播数据归 koki。赛后决策复盘、合规章节和 `docs/COMPLIANCE.md` 归 ahi。已核对的数字在 `docs/economy-rules.json`（32 条 VERIFIED，7 条 UNVERIFIED）。引擎落地后，赛后样例里的金额与这些已核对数字保持一致，包括：埋包者 $300；炸弹被拆时每名 T $600（不是 $800）；获胜后连败奖励只降一档，不回到 $1400；半场手枪局从连败层数 1 起算，手枪局失利是 $1900。`post-match/` 不另写一套经济规则。
 
 ## Run the post-match review locally / 本地运行赛后复盘
 
@@ -40,7 +49,7 @@ npm test
 npm run review
 ```
 
-`npm run review` prints the three largest expected-value leaks. Until zhasi's `packages/engine` is on main, the demo uses a fixture lookup that returns canned option tables. It does not contain CS2 money rules.
+`npm run review` prints the three largest expected-value leaks. Until zhasi's `packages/engine` is on main, the demo uses a fixture lookup that returns canned option tables. Dollar amounts in those fixtures follow `docs/economy-rules.json` once that engine is wired; the lookup itself does not encode the ladder.
 
 ## Interface assumptions for zhasi and koki / 给 zhasi 和 koki 的接口约定
 
@@ -71,4 +80,4 @@ interface BuyOptionEvaluation {
 
 Koki's stub `{ recommendation, reason: string, enemyEconomyBand?: { min, max } }` adapts, and it cannot rank leaks until per-class `expectedValue` is present. Map `GameState` onto `EconomyEvaluationInput` (round, score, own money, loss streaks, optional band). Enemy positions are not part of the input.
 
-`post-match/` 里的样例引擎只是按回合号查表。规则数字以 zhasi 的 `packages/engine` 为准。
+`post-match/` 里的样例引擎只是按回合号查表。规则数字以 zhasi 的 `docs/economy-rules.json` 和日后的 `packages/engine` 为准。
