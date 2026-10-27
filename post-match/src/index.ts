@@ -1,6 +1,6 @@
 export {
   BUY_CLASSES,
-  adaptKohiEngine,
+  adaptEconomyEngine,
   asBilingual,
   asBuyOption,
   asRecommendation,
@@ -11,7 +11,7 @@ export {
   type EconomyEngine,
   type EconomyEvaluationInput,
   type FreezeTimeRecommendation,
-  type KohiEngineLike,
+  type EconomyEngineLike,
   type MoneyBand,
 } from "./economy-engine.js";
 export { ReviewError, type ReviewErrorCode } from "./errors.js";

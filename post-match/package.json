@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Post-match decision-leak review. Calls kohi's EconomyEngine; does not implement CS2 economy rules.",
+  "description": "Post-match decision-leak review. Calls zhasi's EconomyEngine; does not implement CS2 economy rules.",
   "exports": {
     ".": "./src/index.ts"
   },

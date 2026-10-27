@@ -18,7 +18,7 @@ export interface PlayedRound<TState = EconomyEvaluationInput> {
   winner: RoundWinner;
   chosenBuy: BuyClass;
   /**
-   * Passed through to kohi's EconomyEngine when this round has no logged
+   * Passed through to zhasi's EconomyEngine when this round has no logged
    * option table. The review does not read money rules out of it.
    */
   state?: TState;
@@ -115,13 +115,13 @@ function resolveRound<TState>(
   if (!round.state) {
     throw new ReviewError(
       "missing-ev",
-      `Round ${round.roundNumber} has no logged options and no state to send to kohi's EconomyEngine.`,
+      `Round ${round.roundNumber} has no logged options and no state to send to zhasi's EconomyEngine.`,
     );
   }
   if (!engine) {
     throw new ReviewError(
       "missing-ev",
-      `Round ${round.roundNumber} needs kohi's EconomyEngine. Pass engine options on the round, or inject EconomyEngine.`,
+      `Round ${round.roundNumber} needs zhasi's EconomyEngine. Pass engine options on the round, or inject EconomyEngine.`,
     );
   }
 
@@ -149,7 +149,7 @@ function optionsFromEngine<TState>(
   }
   throw new ReviewError(
     "missing-ev",
-    `Round ${roundNumber}: kohi's recommend() returned ${recommendation.recommendation} without a per-class expectedValue table. evaluateBuyOptions() or recommend().options is required to rank leaks.`,
+    `Round ${roundNumber}: zhasi's recommend() returned ${recommendation.recommendation} without a per-class expectedValue table. evaluateBuyOptions() or recommend().options is required to rank leaks.`,
   );
 }
 

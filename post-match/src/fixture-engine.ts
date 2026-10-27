@@ -11,9 +11,9 @@ import { ReviewError } from "./errors.js";
  * Lookup double for tests and the demo CLI.
  *
  * This is a table of engine-shaped results keyed by round number. It exists
- * so the review can run before kohi's `packages/economy` is on main. It has
+ * so the review can run before zhasi's `packages/engine` is on main. It has
  * no loss-bonus ladder, kill rewards, or other CS2 rule numbers — those stay
- * in kohi's EconomyEngine. Unknown rounds throw rather than invent an EV.
+ * in zhasi's EconomyEngine. Unknown rounds throw rather than invent an EV.
  */
 export interface FixtureLookupEngine extends EconomyEngine<EconomyEvaluationInput> {
   evaluateBuyOptions: (input: EconomyEvaluationInput) => BuyOptionEvaluation[];

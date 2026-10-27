@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { adaptKohiEngine, type EconomyEngine, type FreezeTimeRecommendation } from "../src/economy-engine.js";
+import { adaptEconomyEngine, type EconomyEngine, type FreezeTimeRecommendation } from "../src/economy-engine.js";
 import { ReviewError } from "../src/errors.js";
 import { createFixtureLookupEngine } from "../src/fixture-engine.js";
 import { blueprintEngineTable, blueprintMatch, blueprintRoundsForEngine } from "../src/fixtures.js";
@@ -237,9 +237,9 @@ describe("reviewMatch", () => {
   });
 });
 
-describe("adaptKohiEngine", () => {
-  it("accepts kohi's buyClass field and koki's recommendation field", () => {
-    const kohi = adaptKohiEngine({
+describe("adaptEconomyEngine", () => {
+  it("accepts a buyClass field and koki's recommendation field", () => {
+    const adapted = adaptEconomyEngine({
       recommend() {
         return {
           buyClass: "save",
@@ -253,13 +253,13 @@ describe("adaptKohiEngine", () => {
         };
       },
     });
-    const recommendation = kohi.recommend(blueprintMatch[1]!.state);
+    const recommendation = adapted.recommend(blueprintMatch[1]!.state);
     expect(recommendation.recommendation).toBe("save");
     expect(recommendation.buyingPower).toBe(18400);
     expect(recommendation.enemyEconomyBand).toEqual({ min: 2000, max: 4500 });
     expect(recommendation.options?.[0]?.reason).toEqual({ en: "Too expensive.", zh: "Too expensive." });
 
-    const koki = adaptKohiEngine({
+    const koki = adaptEconomyEngine({
       recommend() {
         return {
           recommendation: "eco",
@@ -273,7 +273,7 @@ describe("adaptKohiEngine", () => {
   });
 
   it("ranks a match through evaluateBuyOptions on the adapted engine", () => {
-    const engine = adaptKohiEngine({
+    const engine = adaptEconomyEngine({
       recommend() {
         return { recommendation: "eco" as const, reason: "unused" };
       },

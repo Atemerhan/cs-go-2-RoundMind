@@ -21,12 +21,12 @@ The blueprint states the law this way: the legitimate, defensible, larger busine
 ## What this repository does / 这个仓库做什么
 
 - Read official Counter-Strike 2 Game State Integration only. The player opts in with a `gamestate_integration_*.cfg`. The feed is read-only and local. Koki owns that listener.
-- Compute buy advice from public economy rules and from state the player is already entitled to know: score, round phase, own money and equipment, bomb and timer state, and an enemy-economy band estimated from public round history. Kohi owns those rule numbers.
+- Compute buy advice from public economy rules and from state the player is already entitled to know: score, round phase, own money and equipment, bomb and timer state, and an enemy-economy band estimated from public round history. Zhasi owns those rule numbers. Kohi polishes the calculator UI after the engine PR merges.
 - Speak at preparation and review time. Freeze time gets one buy class (`full`, `force`, `eco`, or `save`) and a one-clause reason. After the match, `post-match/` names the decisions that cost the most expected value and the better line for each.
 - Leave every in-game action to the player.
 
 - 只读官方的 Counter-Strike 2 Game State Integration。玩家用自己的 `gamestate_integration_*.cfg` 选择开启。这条数据流是只读的、本地的。监听由 koki 负责。
-- 购买建议只来自公开经济规则，以及玩家本来就有权知道的状态：比分、回合阶段、自己的金钱和装备、炸弹与计时，以及根据公开回合历史估出的对方经济区间。规则数字由 kohi 负责。
+- 购买建议只来自公开经济规则，以及玩家本来就有权知道的状态：比分、回合阶段、自己的金钱和装备、炸弹与计时，以及根据公开回合历史估出的对方经济区间。规则数字由 zhasi 负责。kohi 在引擎 PR 合并后打磨计算器界面。
 - 只在准备和复盘时开口。冻结时间给出一个购买类型（`full` / `force` / `eco` / `save`）和一句理由。比赛结束后，`post-match/` 指出最亏期望价值的决定，并给出更好的一条线。
 - 游戏里的每一次操作都由玩家自己完成。
 
@@ -54,9 +54,9 @@ Contributors do not add the following, including as a "debug" path, a private fl
 
 ## How the line is held / 边界怎么守住
 
-The post-match review calls kohi's `EconomyEngine` and ranks lines the engine already scored. It does not open a second input path. A future GSI listener stays read-only. Facts (the engine) and guesses (a later read layer) stay separate, and a guess is not presented as a fact.
+The post-match review calls zhasi's `EconomyEngine` and ranks lines the engine already scored. It does not open a second input path. A future GSI listener stays read-only. Facts (the engine) and guesses (a later read layer) stay separate, and a guess is not presented as a fact.
 
-赛后复盘调用 kohi 的 `EconomyEngine`，只对引擎已经算过的购买线排序。它不开第二条输入通道。以后的 GSI 监听保持只读。事实（引擎）和猜测（以后的解读层）分开，猜测不会被说成事实。
+赛后复盘调用 zhasi 的 `EconomyEngine`，只对引擎已经算过的购买线排序。它不开第二条输入通道。以后的 GSI 监听保持只读。事实（引擎）和猜测（以后的解读层）分开，猜测不会被说成事实。
 
 See the ownership table in the root [README](../README.md).
 

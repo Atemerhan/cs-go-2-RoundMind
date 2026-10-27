@@ -26,7 +26,7 @@ export interface LeakNarrativeInput {
 }
 
 /**
- * Narration only. The buy class comes from kohi's option table.
+ * Narration only. The buy class comes from zhasi's option table.
  * The 4-man-save wording is the blueprint's post-match example
  * (Master Blueprint v1.0, Part 3.3), used when that situation is
  * what the engine's best line actually is.

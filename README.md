@@ -18,13 +18,14 @@ RoundMind 只读官方 GSI 和公开经济规则，在冻结时间和赛后开�
 
 | Module | Owner | Path |
 | --- | --- | --- |
-| Deterministic economy engine and black-and-gold web calculator | kohi (`bc-8a650664`) | `packages/economy`, `apps/web` |
+| Deterministic economy engine, rule numbers, and the web calculator | zhasi | `packages/engine`, `apps/web` |
+| Calculator UI polish, after zhasi's engine PR merges | kohi | `apps/web` |
 | CS2 Game State Integration live feed | koki | `src/gsi/` |
 | Post-match decision-leak review, this compliance section, and `docs/COMPLIANCE.md` | ahi | `post-match/`, `docs/COMPLIANCE.md` |
 
-Kohi owns the rule numbers and the `EconomyEngine` implementation. The review calls that engine. Koki normalizes official GSI into a `GameState` and can pass it through `adaptKohiEngine`. Raw GSI parsing stays in `src/gsi/`.
+Zhasi owns the rule numbers and the `EconomyEngine` implementation. The review calls that engine. Kohi polishes the calculator UI after zhasi's engine PR merges. Koki normalizes official GSI into a `GameState` and can pass it through `adaptEconomyEngine`. Raw GSI parsing stays in `src/gsi/`.
 
-经济引擎和黑金网页计算器归 kohi。GSI 直播数据归 koki。赛后决策复盘、合规章节和 `docs/COMPLIANCE.md` 归 ahi。
+经济引擎、规则数字和网页计算器归 zhasi。kohi 在引擎 PR 合并后打磨计算器界面。GSI 直播数据归 koki。赛后决策复盘、合规章节和 `docs/COMPLIANCE.md` 归 ahi。
 
 ## Run the post-match review locally / 本地运行赛后复盘
 
@@ -39,18 +40,18 @@ npm test
 npm run review
 ```
 
-`npm run review` prints the three largest expected-value leaks. Until `packages/economy` is on main, the demo uses a fixture lookup that returns canned option tables. It does not contain CS2 money rules.
+`npm run review` prints the three largest expected-value leaks. Until zhasi's `packages/engine` is on main, the demo uses a fixture lookup that returns canned option tables. It does not contain CS2 money rules.
 
-## Interface assumptions for kohi and koki / 给 kohi 和 koki 的接口约定
+## Interface assumptions for zhasi and koki / 给 zhasi 和 koki 的接口约定
 
-Canonical types live in `post-match/src/economy-engine.ts`. Assumed kohi surface:
+Canonical types live in `post-match/src/economy-engine.ts`. Assumed zhasi surface:
 
 ```ts
 type BuyClass = "full" | "force" | "eco" | "save";
 
 interface EconomyEngine {
   recommend(input: EconomyEvaluationInput): {
-    recommendation: BuyClass; // buyClass is also accepted by adaptKohiEngine
+    recommendation: BuyClass; // buyClass is also accepted by adaptEconomyEngine
     reason: string | { en: string; zh: string };
     enemyEconomyBand?: { min: number; max: number };
     buyingPower?: number;
@@ -70,4 +71,4 @@ interface BuyOptionEvaluation {
 
 Koki's stub `{ recommendation, reason: string, enemyEconomyBand?: { min, max } }` adapts, and it cannot rank leaks until per-class `expectedValue` is present. Map `GameState` onto `EconomyEvaluationInput` (round, score, own money, loss streaks, optional band). Enemy positions are not part of the input.
 
-`post-match/` 里的样例引擎只是按回合号查表。规则数字以 kohi 的 `packages/economy` 为准。
+`post-match/` 里的样例引擎只是按回合号查表。规则数字以 zhasi 的 `packages/engine` 为准。

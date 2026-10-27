@@ -6,7 +6,7 @@ const engine = createFixtureLookupEngine(blueprintEngineTable);
 const review = reviewMatch(blueprintRoundsForEngine(), engine);
 
 console.log("RoundMind post-match review");
-console.log("Source: fixture lookup standing in for kohi's EconomyEngine (packages/economy is not on main yet).");
+console.log("Source: fixture lookup standing in for zhasi's EconomyEngine (packages/engine is not on main yet).");
 console.log(`Rounds: ${review.roundsConsidered}. Leaks: ${review.totalLeaks}. Showing ${review.leaks.length}.`);
 console.log("");
 

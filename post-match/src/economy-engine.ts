@@ -1,23 +1,23 @@
 import { ReviewError } from "./errors.js";
 
 /**
- * Consumer protocol for kohi's forthcoming EconomyEngine
- * (`packages/economy`, cloud agent bc-8a650664).
+ * Consumer protocol for zhasi's forthcoming EconomyEngine
+ * (`packages/engine`). Zhasi owns the implementation and every CS2 rule
+ * number. Kohi polishes the calculator UI after that engine PR merges.
  *
- * Kohi owns the implementation and every CS2 rule number. This module
- * only describes the call shape the post-match review will use, plus a
- * thin adapter for the two names already present in teammate briefs:
- * `recommendation` (koki's GSI stub) and `buyClass` (kohi's freeze-time
+ * This module only describes the call the post-match review will use,
+ * plus a thin adapter for the two names already present in teammate
+ * briefs: `recommendation` (koki's GSI stub) and `buyClass` (freeze-time
  * output).
  *
- * Assumed signatures once `packages/economy` lands:
+ * Assumed signatures once `packages/engine` lands:
  *
  * ```ts
  * export type BuyClass = "full" | "force" | "eco" | "save";
  *
  * export interface EconomyEngine {
  *   recommend(input: EconomyEvaluationInput): {
- *     recommendation: BuyClass; // `buyClass` is also accepted by adaptKohiEngine
+ *     recommendation: BuyClass; // `buyClass` is also accepted by adaptEconomyEngine
  *     reason: string | { en: string; zh: string };
  *     enemyEconomyBand?: { min: number; max: number };
  *     buyingPower?: number;
@@ -42,9 +42,9 @@ import { ReviewError } from "./errors.js";
  * module does not parse raw GSI payloads.
  *
  * `EconomyEvaluationInput` is the freeze-time record the review passes
- * through. Kohi may narrow or rename the engine's real parameter. When
- * that type lands, change `adaptKohiEngine` — leave the rule math in
- * `packages/economy`.
+ * through. Zhasi may narrow or rename the engine's real parameter. When
+ * that type lands, change `adaptEconomyEngine` — leave the rule math in
+ * `packages/engine`.
  */
 
 export const BUY_CLASSES = ["full", "force", "eco", "save"] as const;
@@ -97,10 +97,10 @@ export interface EconomyEngine<TState = EconomyEvaluationInput> {
 }
 
 /**
- * Loose object kohi or koki can already return. Canonical fields win;
+ * Loose object zhasi or koki can already return. Canonical fields win;
  * the listed aliases cover the names in the current briefs.
  */
-export interface KohiEngineLike<TState = EconomyEvaluationInput> {
+export interface EconomyEngineLike<TState = EconomyEvaluationInput> {
   recommend?: (input: TState) => unknown;
   evaluateBuyOptions?: (input: TState) => unknown;
 }
@@ -139,7 +139,7 @@ export function asBuyOption(value: unknown, where: string): BuyOptionEvaluation 
   if (typeof record.expectedValue !== "number" || !Number.isFinite(record.expectedValue)) {
     throw new ReviewError(
       "invalid-option",
-      `${where} (${buyClass}) needs a finite expectedValue from kohi's EconomyEngine.`,
+      `${where} (${buyClass}) needs a finite expectedValue from zhasi's EconomyEngine.`,
     );
   }
   return {
@@ -176,15 +176,15 @@ export function asRecommendation(value: unknown): FreezeTimeRecommendation {
   };
 }
 
-export function adaptKohiEngine<TState = EconomyEvaluationInput>(
-  impl: KohiEngineLike<TState>,
+export function adaptEconomyEngine<TState = EconomyEvaluationInput>(
+  impl: EconomyEngineLike<TState>,
 ): EconomyEngine<TState> {
   const engine: EconomyEngine<TState> = {
     recommend(input) {
       if (!impl.recommend) {
         throw new ReviewError(
           "missing-ev",
-          "Kohi's EconomyEngine has no recommend(). Wire packages/economy before ranking leaks.",
+          "Zhasi's EconomyEngine has no recommend(). Wire packages/engine before ranking leaks.",
         );
       }
       return asRecommendation(impl.recommend(input));

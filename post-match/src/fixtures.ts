@@ -6,8 +6,8 @@ import { fixtureTable } from "./fixture-engine.js";
  * Blueprint-shaped match (Master Blueprint v1.0, Part 3.3).
  *
  * Expected values are a canned option table for the lookup double. They are
- * not CS2 rule outputs. Replace the table with kohi's `evaluateBuyOptions`
- * when `packages/economy` lands; keep the played buys.
+ * not CS2 rule outputs. Replace the table with zhasi's `evaluateBuyOptions`
+ * when `packages/engine` lands; keep the played buys.
  *
  * Round 5 is the freeze-time example played correctly: eco against a 2-loss
  * opponent, so it is not a leak.
