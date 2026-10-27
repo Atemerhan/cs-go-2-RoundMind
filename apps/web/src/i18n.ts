@@ -1,4 +1,4 @@
-import type { BuyClass, FreezeAdvice, ReasonCode, RoundEndReason, Side, WarningCode } from "@roundmind/engine";
+import type { BuyClass, CompletedRound, FreezeAdvice, ReasonCode, RoundEndReason, Side, WarningCode } from "@roundmind/engine";
 
 export type Lang = "zh" | "en";
 
@@ -133,4 +133,326 @@ export function enemyRead(lang: Lang, advice: FreezeAdvice): string {
   return lang === "zh"
     ? `对方从${poor}到${rich}，信心${confidence}`
     : `Enemy spans ${poor} to ${rich}, ${confidence} confidence`;
+}
+
+const UNVERIFIED_WARNINGS = new Set<WarningCode>(["overtime_loss_count_unverified"]);
+
+export function isUnverifiedWarning(code: WarningCode): boolean {
+  return UNVERIFIED_WARNINGS.has(code);
+}
+
+export function scoreLine(lang: Lang, score: { T: number; CT: number }): string {
+  return lang === "zh" ? `匪 ${score.T} · 警 ${score.CT}` : `T ${score.T} · CT ${score.CT}`;
+}
+
+export function extrasLine(lang: Lang, round: CompletedRound): string {
+  const parts: string[] = [];
+  if (round.alive?.T !== undefined) parts.push(lang === "zh" ? `匪存活 ${round.alive.T}` : `T alive ${round.alive.T}`);
+  if (round.alive?.CT !== undefined) parts.push(lang === "zh" ? `警存活 ${round.alive.CT}` : `CT alive ${round.alive.CT}`);
+  if (round.killRewardTotal?.T !== undefined) {
+    parts.push(lang === "zh" ? `匪击杀奖金 ${money(round.killRewardTotal.T)}` : `T kill reward ${money(round.killRewardTotal.T)}`);
+  }
+  if (round.killRewardTotal?.CT !== undefined) {
+    parts.push(lang === "zh" ? `警击杀奖金 ${money(round.killRewardTotal.CT)}` : `CT kill reward ${money(round.killRewardTotal.CT)}`);
+  }
+  return parts.join(" · ");
+}
+
+export function phaseLabel(lang: Lang, phase: string): string {
+  const zh: Record<string, string> = {
+    freezetime: "冻结",
+    live: "进行中",
+    bomb: "已下包",
+    defuse: "拆包中",
+    over: "回合结束",
+    halftime: "半场",
+    timeout: "暂停",
+    paused: "暂停",
+    warmup: "热身",
+    gameover: "比赛结束",
+    unknown: "未知",
+  };
+  const en: Record<string, string> = {
+    freezetime: "Freeze",
+    live: "Live",
+    bomb: "Planted",
+    defuse: "Defuse",
+    over: "Round over",
+    halftime: "Halftime",
+    timeout: "Timeout",
+    paused: "Paused",
+    warmup: "Warmup",
+    gameover: "Game over",
+    unknown: "Unknown",
+  };
+  const table = lang === "zh" ? zh : en;
+  return table[phase] ?? phase;
+}
+
+export interface Copy {
+  skip: string;
+  docTitle: string;
+  title: string;
+  subtitle: string;
+  language: string;
+  recommendation: string;
+  thisFreeze: string;
+  side: string;
+  presets: string;
+  pistol: string;
+  eco: string;
+  force: string;
+  full: string;
+  save: string;
+  overtime: string;
+  ourCash: string;
+  player: (n: number) => string;
+  playerCash: (n: number) => string;
+  primary: string;
+  primaryYes: string;
+  primaryNo: string;
+  primaryYesName: (n: number) => string;
+  primaryNoName: (n: number) => string;
+  teamCash: string;
+  atFull: string;
+  atForce: string;
+  holding: string;
+  fullLine: string;
+  forceLine: string;
+  affordFull: string;
+  affordForce: string;
+  affordShort: string;
+  historyTitle: (n: number) => string;
+  historyEmpty: string;
+  newRound: string;
+  winner: string;
+  winnerName: (round: number, side: string) => string;
+  newWinnerName: (side: string) => string;
+  newReason: string;
+  endReason: string;
+  reasonName: (round: number) => string;
+  optional: string;
+  details: string;
+  remove: string;
+  aliveT: string;
+  aliveCT: string;
+  killT: string;
+  killCT: string;
+  addRound: string;
+  roundN: (n: number) => string;
+  removeRound: (n: number) => string;
+  detailsRound: (n: number) => string;
+  clearHistory: string;
+  enemyEconomy: string;
+  perPlayer: string;
+  teamRange: string;
+  axisLow: string;
+  axisHigh: string;
+  ourAverage: string;
+  lossBonus: string;
+  ourLosses: string;
+  enemyLosses: string;
+  unverified: string;
+  disclaimer: string;
+  compliance: string;
+  helmet: string;
+  kit: string;
+  source: string;
+  manual: string;
+  live: string;
+  localOnly: string;
+  statusConnecting: string;
+  statusDown: string;
+  statusWaiting: string;
+  statusInvalid: string;
+  statusNeedsSide: string;
+  statusReady: (round: number, phase: string, side: string) => string;
+  statusFallbackSide: string;
+  callFromLive: string;
+  callFromManual: string;
+  manualSummary: string;
+  fallbackSummary: string;
+  liveRoster: (n: number) => string;
+  liveHistory: string;
+  reportedShort: string;
+}
+
+const zhCopy: Copy = {
+  skip: "跳到建议",
+  docTitle: "RoundMind · 冻结时间经济",
+  title: "冻结时间经济",
+  subtitle: "满购、强起、白给、存枪。只根据公开回合和己方现金。",
+  language: "语言",
+  recommendation: "这一冻结的建议",
+  thisFreeze: "这一冻结",
+  side: "阵营",
+  presets: "局面",
+  pistol: "手枪局",
+  eco: "白给",
+  force: "强起",
+  full: "满购",
+  save: "存枪",
+  overtime: "加时",
+  ourCash: "己方现金",
+  player: (n) => `玩家 ${n}`,
+  playerCash: (n) => `玩家 ${n} 现金`,
+  primary: "主武器",
+  primaryYes: "有",
+  primaryNo: "无",
+  primaryYesName: (n) => `玩家 ${n} 有主武器`,
+  primaryNoName: (n) => `玩家 ${n} 无主武器`,
+  teamCash: "团队现金",
+  atFull: "达到满购线",
+  atForce: "达到强起线",
+  holding: "有主武器",
+  fullLine: "满购线",
+  forceLine: "强起线",
+  affordFull: "够满购",
+  affordForce: "够强起",
+  affordShort: "未到线",
+  historyTitle: (n) => `已结束的回合 · ${n}`,
+  historyEmpty: "还没有已结束的回合。",
+  newRound: "新回合",
+  winner: "获胜方",
+  winnerName: (round, side) => `回合 ${round} ${side}获胜`,
+  newWinnerName: (side) => `新回合 ${side}获胜`,
+  newReason: "新回合结束方式",
+  endReason: "结束方式",
+  reasonName: (round) => `回合 ${round} 结束方式`,
+  optional: "可选：存活与击杀奖金",
+  details: "细节",
+  remove: "删除",
+  aliveT: "匪存活",
+  aliveCT: "警存活",
+  killT: "匪击杀奖金合计",
+  killCT: "警击杀奖金合计",
+  addRound: "加入回合",
+  roundN: (n) => `回合 ${n}`,
+  removeRound: (n) => `删除回合 ${n}`,
+  detailsRound: (n) => `回合 ${n} 细节`,
+  clearHistory: "清空历史",
+  enemyEconomy: "对方经济",
+  perPlayer: "人均",
+  teamRange: "全队",
+  axisLow: "$0",
+  axisHigh: "上限",
+  ourAverage: "己方人均",
+  lossBonus: "负场奖金",
+  ourLosses: "己方连败计数",
+  enemyLosses: "对方连败计数",
+  unverified: "未核实",
+  disclaimer: "超时加钱扣给谁、连败计数会不会封顶、加时连败计数会不会归零，都还没核实。建议不把这些当成事实。",
+  compliance: "RoundMind 只做赛前和冻结时间的决策辅助。以后只接官方 Game State Integration。不读内存，不注入，不模拟键鼠，不提供敌人位置或准星。玩家自己下单。",
+  helmet: "头甲",
+  kit: "拆弹器",
+  source: "建议来源",
+  manual: "手动",
+  live: "本机直播（GSI）",
+  localOnly: "只读本机 http://127.0.0.1:3000/state。不上传，不读内存。监听不在时用手动表。",
+  statusConnecting: "正在连接本机监听…",
+  statusDown: "监听没开，正在用手动表。",
+  statusWaiting: "监听在，还没有对局，正在用手动表。",
+  statusInvalid: "收到的内容不是对局状态，正在用手动表。",
+  statusNeedsSide: "这场没有阵营。先在手动表里选匪或警。",
+  statusReady: (round, phase, side) => `已连上 · 第 ${round} 回合 · ${phase} · ${side}`,
+  statusFallbackSide: "这场没有标明阵营，沿用手动表的选择。",
+  callFromLive: "来自本机 GSI",
+  callFromManual: "来自手动表",
+  manualSummary: "手动表",
+  fallbackSummary: "手动表（断线后用这张）",
+  liveRoster: (n) => `己方现金 ${n} 人`,
+  liveHistory: "监听记下的回合",
+  reportedShort: "没送来现金的人不算进人均，也不当成 $0。",
+};
+
+const enCopy: Copy = {
+  skip: "Skip to the call",
+  docTitle: "RoundMind · Freeze-time economy",
+  title: "Freeze-time economy",
+  subtitle: "Full, force, eco, or save. Public rounds and your cash only.",
+  language: "Language",
+  recommendation: "This freeze",
+  thisFreeze: "This freeze",
+  side: "Side",
+  presets: "Situations",
+  pistol: "Pistol",
+  eco: "Eco",
+  force: "Force",
+  full: "Full",
+  save: "Save",
+  overtime: "Overtime",
+  ourCash: "Our cash",
+  player: (n) => `Player ${n}`,
+  playerCash: (n) => `Player ${n} cash`,
+  primary: "Primary",
+  primaryYes: "Yes",
+  primaryNo: "No",
+  primaryYesName: (n) => `Player ${n} has a primary`,
+  primaryNoName: (n) => `Player ${n} has no primary`,
+  teamCash: "Team cash",
+  atFull: "At full-buy line",
+  atForce: "At force line",
+  holding: "Holding a primary",
+  fullLine: "Full-buy line",
+  forceLine: "Force line",
+  affordFull: "Can full-buy",
+  affordForce: "Can force",
+  affordShort: "Short",
+  historyTitle: (n) => `Completed rounds · ${n}`,
+  historyEmpty: "No completed rounds yet.",
+  newRound: "New round",
+  winner: "Winner",
+  winnerName: (round, side) => `Round ${round} ${side} won`,
+  newWinnerName: (side) => `New round ${side} won`,
+  newReason: "New round end reason",
+  endReason: "End reason",
+  reasonName: (round) => `Round ${round} end reason`,
+  optional: "Optional: alive and kill reward",
+  details: "Details",
+  remove: "Remove",
+  aliveT: "T alive",
+  aliveCT: "CT alive",
+  killT: "T kill reward",
+  killCT: "CT kill reward",
+  addRound: "Add round",
+  roundN: (n) => `Round ${n}`,
+  removeRound: (n) => `Remove round ${n}`,
+  detailsRound: (n) => `Round ${n} details`,
+  clearHistory: "Clear history",
+  enemyEconomy: "Enemy economy",
+  perPlayer: "Per player",
+  teamRange: "Team",
+  axisLow: "$0",
+  axisHigh: "Cap",
+  ourAverage: "Our average",
+  lossBonus: "Loss bonus",
+  ourLosses: "Our loss count",
+  enemyLosses: "Enemy loss count",
+  unverified: "Unverified",
+  disclaimer: "Who gets the +$0 timeout line, whether a deep loss count is stored capped, and whether overtime resets that count are unverified. The call does not treat them as facts.",
+  compliance: "RoundMind is coaching for the buy phase and review. A later build may read official Game State Integration only. No memory reading, no injection, no input automation, no enemy positions or crosshair help. The player makes every action.",
+  helmet: "Helmet",
+  kit: "Kit",
+  source: "Call source",
+  manual: "Manual",
+  live: "Live (GSI)",
+  localOnly: "Read-only http://127.0.0.1:3000/state on this machine. Nothing is uploaded. No memory reading. If the listener is down, the manual form is the call.",
+  statusConnecting: "Connecting to the local listener…",
+  statusDown: "Listener is down. Using the manual form.",
+  statusWaiting: "Listener is up, but no match yet. Using the manual form.",
+  statusInvalid: "That payload is not a match state. Using the manual form.",
+  statusNeedsSide: "This match has no side. Pick T or CT on the manual form.",
+  statusReady: (round, phase, side) => `Connected · round ${round} · ${phase} · ${side}`,
+  statusFallbackSide: "This match did not name a side. Using the manual form's side.",
+  callFromLive: "From local GSI",
+  callFromManual: "From the manual form",
+  manualSummary: "Manual form",
+  fallbackSummary: "Manual form (used if the listener drops)",
+  liveRoster: (n) => `${n} on our side with cash`,
+  liveHistory: "Rounds the listener kept",
+  reportedShort: "Players with no cash in the payload are left out. They are not treated as $0.",
+};
+
+export function copy(lang: Lang): Copy {
+  return lang === "zh" ? zhCopy : enCopy;
 }
