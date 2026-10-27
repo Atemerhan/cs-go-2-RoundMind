@@ -18,7 +18,7 @@ RoundMind 只读官方 GSI 和公开经济规则，在冻结时间和赛后开�
 
 | Module | Owner | Path |
 | --- | --- | --- |
-| Deterministic economy engine, rule numbers, and the web calculator | zhasi | `packages/engine`, `apps/web` |
+| Deterministic economy engine, rule numbers, and the web calculator | zhasi | `packages/engine`, `apps/web`, `docs/economy-rules.json` |
 | Calculator UI polish, after zhasi's engine PR merges | kohi | `apps/web` |
 | CS2 Game State Integration live feed | koki | `src/gsi/` |
 | Post-match decision-leak review, this compliance section, and `docs/COMPLIANCE.md` | ahi | `post-match/`, `docs/COMPLIANCE.md` |
