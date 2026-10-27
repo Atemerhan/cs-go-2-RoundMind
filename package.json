@@ -1,0 +1,16 @@
+{
+  "name": "roundmind",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "test": "npm test --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "dev": "npm run dev -w @roundmind/web"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
