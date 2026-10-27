@@ -3,6 +3,7 @@ import {
   PER_OPTION_EV_GAP,
   type BuyClass,
   type BuyOptionEvaluation,
+  type EngineBuyOption,
   type EconomyEngine,
   type FreezeSnapshot,
 } from "./economy-engine.js";
@@ -11,6 +12,19 @@ import { narrateLeak } from "./narrate.js";
 
 /** Gaps at or below this are the same decision for ranking purposes. */
 export const EV_LEAK_EPSILON = 1e-9;
+
+/**
+ * How much worse the played buy is than the best class, in loss-bonus steps.
+ * Positive cost ranks first. zhasi's regret is the negation (`chosen - best`).
+ */
+export function leakCost(bestExpectedValue: number, chosenExpectedValue: number): number {
+  return bestExpectedValue - chosenExpectedValue;
+}
+
+/** The regret published on `evaluateBuyOptions`: `chosen.expectedValue - best`. */
+export function engineRegret(chosenExpectedValue: number, bestExpectedValue: number): number {
+  return chosenExpectedValue - bestExpectedValue;
+}
 
 export type RoundWinner = "us" | "them";
 
@@ -24,8 +38,8 @@ export interface PlayedRound<TState = FreezeSnapshot> {
    * result of this round and is not part of the snapshot's history.
    */
   state?: TState;
-  /** Engine-computed EV captured at freeze time, when the log already has it. */
-  options?: readonly BuyOptionEvaluation[];
+  /** `evaluateBuyOptions` rows already captured at freeze time, when the log has them. */
+  options?: readonly EngineBuyOption[];
 }
 
 export interface DecisionLeak {
@@ -33,7 +47,11 @@ export interface DecisionLeak {
   winner: RoundWinner;
   chosenBuy: BuyClass;
   betterBuy: BuyClass;
-  /** best.expectedValue - chosen.expectedValue, in the engine's units. */
+  /**
+   * `best.expectedValue - chosen.expectedValue`, in loss-bonus steps
+   * (1 point = $500). Positive means the played buy was worse.
+   * zhasi's regret is `-evCost`.
+   */
   evCost: number;
   chosenExpectedValue: number;
   betterExpectedValue: number;
@@ -64,18 +82,13 @@ interface ResolvedRound {
 /**
  * Rank a match by expected-value gap.
  *
- * For each round, take the option table already stored on the round or ask
- * `engine.evaluateBuyOptions` / `engine.recommend().options`. The leak size
- * is the best line's EV minus the line that was played. Round winners are
- * reported and are not used as the ranking key: a won round can still be a
- * leak, and a correct save can still lose the round.
+ * For each round, ask `evaluateBuyOptions` unless the round already logged
+ * that table. Leak cost is `best.expectedValue - chosen.expectedValue`
+ * (positive). zhasi's regret is `chosen - best`. Round winners are reported
+ * and are not the ranking key.
  *
- * zhasi's `evaluateFreeze` returns one buy and `enemy.band`. It has no
- * per-class expected value, so a snapshot alone cannot be ranked. Logged
- * options cover that gap until the engine exposes a table.
- *
- * Logged `options` are the record of what the engine said at freeze time,
- * so they are used as-is and the engine is not called again for that round.
+ * `evaluateFreeze` stays the freeze-time recommendation. It is not what
+ * ranks the match.
  */
 export function reviewMatch<TState = FreezeSnapshot>(
   rounds: readonly PlayedRound<TState>[],
@@ -172,7 +185,7 @@ function leakFromOptions<TState>(
   }
 
   const best = bestOption(options);
-  const evCost = best.expectedValue - chosen.expectedValue;
+  const evCost = leakCost(best.expectedValue, chosen.expectedValue);
   if (best.buyClass === chosen.buyClass || evCost <= EV_LEAK_EPSILON) {
     return null;
   }

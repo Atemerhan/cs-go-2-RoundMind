@@ -12,8 +12,9 @@ export function buyLabel(buyClass: BuyClass, locale: "en" | "zh"): string {
 }
 
 export function formatEv(value: number): string {
-  const rounded = Math.round(value * 100) / 100;
-  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+  const rounded = Math.round(value * 1000) / 1000;
+  if (Number.isInteger(rounded)) return String(rounded);
+  return rounded.toFixed(3).replace(/0+$/, "").replace(/\.$/, "");
 }
 
 export interface LeakNarrativeInput {
@@ -26,7 +27,8 @@ export interface LeakNarrativeInput {
 }
 
 /**
- * Narration only. The buy class comes from zhasi's option table.
+ * Narration only. The buy class comes from `evaluateBuyOptions`.
+ * Cost is in loss-bonus steps (1 point = $500).
  * The 4-man-save wording is the blueprint's post-match example
  * (Master Blueprint v1.0, Part 3.3), used when that situation is
  * what the engine's best line actually is.
@@ -48,8 +50,10 @@ export function narrateLeak(input: LeakNarrativeInput): BilingualText {
   }
 
   const ev = formatEv(input.evCost);
+  const extraEn = input.betterReason.en ? ` ${input.betterReason.en}` : "";
+  const extraZh = input.betterReason.zh ? `${input.betterReason.zh}` : "";
   return {
-    en: `Round ${input.roundNumber}: choosing ${buyLabel(input.chosenBuy, "en")} instead of ${buyLabel(input.betterBuy, "en")} left ${ev} expected value on the table. ${input.betterReason.en}`,
-    zh: `第 ${input.roundNumber} 回合：选择${buyLabel(input.chosenBuy, "zh")}而不是${buyLabel(input.betterBuy, "zh")}，少了 ${ev} 的期望价值。${input.betterReason.zh}`,
+    en: `Round ${input.roundNumber}: choosing ${buyLabel(input.chosenBuy, "en")} instead of ${buyLabel(input.betterBuy, "en")} left ${ev} loss-bonus steps on the table.${extraEn}`,
+    zh: `第 ${input.roundNumber} 回合：选择${buyLabel(input.chosenBuy, "zh")}而不是${buyLabel(input.betterBuy, "zh")}，少了 ${ev} 个连败奖励档（每档 $500）。${extraZh}`,
   };
 }

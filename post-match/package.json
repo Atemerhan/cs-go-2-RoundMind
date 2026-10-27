@@ -3,13 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Post-match decision-leak review. Calls zhasi's evaluateFreeze; does not implement CS2 economy rules.",
+  "description": "Post-match decision-leak review. Calls zhasi's evaluateFreeze and evaluateBuyOptions; does not implement CS2 economy rules.",
   "exports": {
     ".": "./src/index.ts"
   },
   "scripts": {
+    "pretest": "node scripts/vendor-engine.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "prereview": "node scripts/vendor-engine.mjs",
     "review": "tsx src/cli.ts"
   },
   "devDependencies": {

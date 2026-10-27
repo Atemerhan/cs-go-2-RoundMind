@@ -21,11 +21,15 @@ import { ReviewError } from "./errors.js";
  * Koki's GSI feed emits the same shape: `roundNumber`, `ourSide`,
  * `ourPlayers`, `history`.
  *
- * Gap: `evaluateFreeze` returns one `buy`, `reason.code`, the loss bonus,
- * and `enemy.band`. It does not return per-class expected value, so
- * `reviewMatch` cannot rank decision leaks from that call alone. Logged
- * `options` (the fixture path) still rank. When the engine grows an option
- * table, pass it as `evaluateBuyOptions` on the same object.
+ * `evaluateFreeze` is the one freeze-time recommendation. `evaluateBuyOptions`
+ * scores every class on the same snapshot. `expectedValue` is a relative
+ * policy score in loss-bonus steps: 1 point = $500 (`LOSS_BONUS_STEP`),
+ * not estimated round-win dollars.
+ *
+ * zhasi's regret is `chosen.expectedValue - best.expectedValue` (0 when the
+ * team matched, otherwise negative). This review ranks by the positive cost
+ * `best.expectedValue - chosen.expectedValue`, which is the negation of that
+ * regret. A larger cost is a larger leak.
  */
 
 export const BUY_CLASSES = ["full", "force", "eco", "save"] as const;
@@ -57,8 +61,11 @@ export type ReasonCode = (typeof REASON_CODES)[number];
  * Why `reviewMatch` still needs a logged option table.
  * `evaluateFreeze` does not currently expose per-buy expected value.
  */
+/** Dollars represented by one `expectedValue` point. Not a win-rate dollar. */
+export const EV_POINT_DOLLARS = 500;
+
 export const PER_OPTION_EV_GAP =
-  "evaluateFreeze returns one buy, reason.code, loss bonus, and enemy.band. It does not return per-class expectedValue.";
+  "evaluateBuyOptions is required to rank leaks. evaluateFreeze returns one buy and does not score the other classes.";
 
 export interface KillTally {
   /** Weapon id from `@roundmind/engine`. Kept as a string on this side of the adapter. */
@@ -115,9 +122,24 @@ export interface BilingualText {
   zh: string;
 }
 
+/** Wire shape of `evaluateBuyOptions`: `{ buy, expectedValue }`. */
+export interface EngineBuyOption {
+  buy: BuyClass;
+  expectedValue: number;
+  reason?: BilingualText | string;
+}
+
+/**
+ * Normalized `BuyOption` from `evaluateBuyOptions`.
+ * The engine field is `buy`. `buyClass` is the same value after mapping.
+ */
 export interface BuyOptionEvaluation {
+  buy: BuyClass;
   buyClass: BuyClass;
-  /** Horizon expected value in the engine's units. The review does not rescale it. */
+  /**
+   * Loss-bonus steps. 1 point = $500. Higher is better.
+   * Not estimated round-win dollars.
+   */
   expectedValue: number;
   reason: BilingualText;
 }
@@ -182,23 +204,27 @@ export function asBuyOption(value: unknown, where: string): BuyOptionEvaluation 
     throw new ReviewError("invalid-option", `${where} is not a buy option.`);
   }
   const record = value as Record<string, unknown>;
-  const buyClass = record.buyClass;
-  if (!isBuyClass(buyClass)) {
+  const named = record.buy ?? record.buyClass;
+  if (!isBuyClass(named)) {
     throw new ReviewError(
       "unknown-buy",
-      `${where} has buy class ${JSON.stringify(buyClass)}. Expected full, force, eco, or save.`,
+      `${where} has buy ${JSON.stringify(named)}. Expected full, force, eco, or save.`,
     );
   }
   if (typeof record.expectedValue !== "number" || !Number.isFinite(record.expectedValue)) {
     throw new ReviewError(
       "invalid-option",
-      `${where} (${buyClass}) needs a finite expectedValue. evaluateFreeze does not provide one.`,
+      `${where} (${named}) needs a finite expectedValue from evaluateBuyOptions.`,
     );
   }
+  const reason = readableReason(record.reason)
+    ? asBilingual(record.reason, `${where} (${named}) reason`)
+    : { en: "", zh: "" };
   return {
-    buyClass,
+    buy: named,
+    buyClass: named,
     expectedValue: record.expectedValue,
-    reason: asBilingual(record.reason, `${where} (${buyClass}) reason`),
+    reason,
   };
 }
 
@@ -462,6 +488,13 @@ function reasonCode(value: unknown): string | undefined {
   if (!value || typeof value !== "object") return undefined;
   const code = (value as { code?: unknown }).code;
   return typeof code === "string" ? code : undefined;
+}
+
+function readableReason(reason: unknown): boolean {
+  if (typeof reason === "string") return reason.trim().length > 0;
+  if (!reason || typeof reason !== "object") return false;
+  const record = reason as Record<string, unknown>;
+  return [record.en, record.zh, record.code].some((part) => typeof part === "string" && part.trim().length > 0);
 }
 
 function finiteNumber(value: unknown): number | undefined {

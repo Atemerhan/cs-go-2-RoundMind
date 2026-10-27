@@ -1,5 +1,6 @@
 export {
   BUY_CLASSES,
+  EV_POINT_DOLLARS,
   PER_OPTION_EV_GAP,
   REASON_CODES,
   ROUND_END_REASONS,
@@ -15,6 +16,7 @@ export {
   type CashBand,
   type CompletedRound,
   type EconomyEngine,
+  type EngineBuyOption,
   type EconomyEngineLike,
   type FreezeSnapshot,
   type FreezeTimeRecommendation,
@@ -27,15 +29,12 @@ export {
 } from "./economy-engine.js";
 export { ReviewError, type ReviewErrorCode } from "./errors.js";
 export { createFixtureLookupEngine, fixtureTable, type FixtureLookupEngine } from "./fixture-engine.js";
-export {
-  blueprintEngineTable,
-  blueprintMatch,
-  blueprintRoundsForEngine,
-  type FixtureRound,
-} from "./fixtures.js";
+export { blueprintMatch, blueprintRoundsForEngine, type FixtureRound } from "./fixtures.js";
 export { buyLabel, formatEv, narrateLeak } from "./narrate.js";
 export {
   EV_LEAK_EPSILON,
+  engineRegret,
+  leakCost,
   reviewMatch,
   type DecisionLeak,
   type MatchReview,

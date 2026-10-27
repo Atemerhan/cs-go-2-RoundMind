@@ -11,9 +11,8 @@ import { ReviewError } from "./errors.js";
  * Lookup double for tests and the demo CLI.
  *
  * This is a table of engine-shaped results keyed by round number. It exists
- * so the review can run before zhasi's `evaluateFreeze` exposes per-class
- * expected value. It has no loss-bonus ladder. Unknown rounds throw rather
- * than invent an EV. `evaluateFreeze` itself returns one buy and `enemy.band`.
+ * for ranking tests that pass a hand-built `{ buy, expectedValue }` list.
+ * Blueprint fixtures do not use it. Live scores come from `evaluateBuyOptions`.
  */
 export interface FixtureLookupEngine extends EconomyEngine<FreezeSnapshot> {
   evaluateBuyOptions: (input: FreezeSnapshot) => BuyOptionEvaluation[];
