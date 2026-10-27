@@ -1,0 +1,26 @@
+{
+  "provider": { "name": "Counter-Strike 2", "appid": 730, "timestamp": 1730000200 },
+  "map": {
+    "mode": "competitive",
+    "name": "de_mirage",
+    "phase": "live",
+    "round": 3,
+    "team_ct": { "score": 1, "consecutive_round_losses": 1 },
+    "team_t": { "score": 1, "consecutive_round_losses": 0 }
+  },
+  "round": { "phase": "freezetime" },
+  "phase_countdowns": { "phase": "freezetime", "phase_ends_in": "15.0" },
+  "player": { "steamid": "76561198000000011", "name": "Cai", "team": "T" },
+  "allplayers": {
+    "76561198000000001": {
+      "name": "Ava",
+      "team": "CT",
+      "state": { "money": 2100, "equip_value": 300, "armor": 0, "helmet": false }
+    },
+    "76561198000000011": {
+      "name": "Cai",
+      "team": "T",
+      "state": { "money": 3900, "equip_value": 200, "armor": 0, "helmet": false }
+    }
+  }
+}

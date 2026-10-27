@@ -5,7 +5,7 @@ CS2 Premier / Competitive 的冻结时间经济教练。冻结时间里，按公
 买不买由玩家自己决定。数据只走官方 Game State Integration。建议在冻结时间和赛后给出；不读内存，不注入，不模拟键鼠，也不提供敌人位置、准星或对局中的操作指令。
 
 > [!IMPORTANT]
-> **main 上现在只有规则文档。** 已合并的是 [#2](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/2)。引擎、网页计算器、GSI 和赛后复盘都还在未合并的 PR 里。根目录没有 `package.json`，在 main 上不能 `npm run dev`。
+> **main 上现在只有规则文档。** 已合并的是 [#2](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/2)。引擎、网页计算器和赛后复盘都还在未合并的 PR 里。本分支（[#4](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/4)）带上 `packages/gsi`，即将合入 main。根目录没有 `package.json`，在 main 上不能 `npm run dev`。
 >
 > 数字核对：**[docs/economy-rules-sources.md](docs/economy-rules-sources.md)**。规则表 39 行里 32 条已核实、7 条未核实。结构化副本是 [docs/economy-rules.json](docs/economy-rules.json)。引擎落地后对照这两份，不另写一套金额。
 
@@ -20,7 +20,7 @@ CS2 Premier / Competitive 的冻结时间经济教练。冻结时间里，按公
 | 冻结时间计算器（中文 / 英文） | [#3](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/3) 未合并 | `apps/web` |
 | 计算器界面，以及可选的 Live | [#5](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/5)，叠在 #3 的分支上 | `apps/web` |
 | 四种购买的 `evaluateBuyOptions`（`expectedValue`） | [#6](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/6)，叠在 #3 上；#3 进 main 后再把目标改到 main | `packages/engine` |
-| 官方 GSI → `toFreezeSnapshot`，本地 `GET /state` | [#4](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/4) 未合并 | `packages/gsi` |
+| 官方 GSI → `toFreezeSnapshot`，本地 `GET /state` | 本 PR [#4](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/4)，即将合并 | `packages/gsi` |
 | 赛后决策复盘，合规章程 | [#1](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/1) 未合并 | `post-match/`、`docs/COMPLIANCE.md` |
 
 来源文档里有 7 条未核实。#3 在 `packages/engine/src/rules.ts` 里用 `unverified` 标出这些还不能当成事实的项。超时扣给谁还没定，购买建议不用它来选存枪或强起。
@@ -68,11 +68,11 @@ main 上现在只有 `README.md` 和 `docs/` 里的两份规则。下表其余�
 | `docs/economy-rules.json` | 同一份数字，给以后和 `rules.ts` 对照 | 已在 main |
 | `packages/engine` | `@roundmind/engine`，无 DOM、无网络 | #3；`evaluateBuyOptions` 在 #6 |
 | `apps/web` | `@roundmind/web`，Vite + React | #3；界面和 Live 在 #5 |
-| `packages/gsi` | `@roundmind/gsi`，只读 GSI | #4 |
+| `packages/gsi` | `@roundmind/gsi`，只读 GSI | 本分支（#4，即将合并） |
 | `post-match` | `@roundmind/post-match` | #1 |
 | `docs/COMPLIANCE.md` | 合规章程 | #1 |
 
-#3 把仓库收成 npm workspace（`packages/*`、`apps/*`）。`post-match/` 在 workspace 外面，自己安装。`packages/gsi` 落在 `packages/*` 里；按 #4 的说明，进入该目录安装再启动。它的依赖里没有 `@roundmind/engine`。
+#3 把仓库收成 npm workspace（`packages/*`、`apps/*`）。`post-match/` 在 workspace 外面，自己安装。`packages/gsi` 已在本分支，落在 `packages/*` 里；进入该目录安装再启动。它的依赖里没有 `@roundmind/engine`。
 
 ## 分工
 
@@ -103,7 +103,7 @@ npm run dev
 
 #3 带了 GitHub Pages 工作流。推到 main、并且仓库打开 Pages 之后，才会发布计算器。现在没有线上地址。
 
-### GSI 监听（#4，可以单独跑）
+### GSI 监听（本 PR #4，可以单独跑）
 
 ```bash
 cd packages/gsi
@@ -144,9 +144,9 @@ npm run review
 | [#3](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/3) | `main` | zhasi | `evaluateFreeze` 和网页计算器 |
 | [#5](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/5) | #3 的分支 `cursor/economy-engine-mvp-9f71` | kohi | 界面打磨，可选 Live |
 | [#6](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/6) | 同上，#3 的分支 | zhasi | `evaluateBuyOptions` 与 `expectedValue` |
-| [#4](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/4) | `main` | koki | `packages/gsi`：`toFreezeSnapshot` 和本地 `/state` |
+| [#4](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/4) | `main` | koki | 本 PR，即将合并：`packages/gsi` 已在本分支（`toFreezeSnapshot` 和本地 `/state`） |
 | [#1](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/1) | `main` | ahi | 赛后复盘和 `docs/COMPLIANCE.md` |
 
 团队目前的合并顺序是 **#3 → #5 → #4 → #1**。#6 等 #3 进入 main，把目标分支改到 `main` 再合；#6 的说明里也是这么写的。#5 同样叠在 #3 上，#3 合并后也要改目标分支，再按上面的顺序合。
 
-#3 和 #4 都会改根目录 `README.md`，和本页会冲突。代码目录本身不重叠：引擎在 `packages/engine`，监听在 `packages/gsi`。
+本页保持 #7 的首页。#4 只把 `packages/gsi` 放在本分支。代码目录本身不重叠：引擎在 `packages/engine`，监听在 `packages/gsi`。
