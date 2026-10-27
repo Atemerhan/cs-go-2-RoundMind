@@ -25,6 +25,21 @@ import {
 } from "./money.js";
 import { buyClassForCash, cashBand, projectEconomy, readConfidence } from "./project.js";
 
+/**
+ * Fields the buy call already compared. `evaluateBuyOptions` turns these
+ * into a score per class; it does not read a second economy model.
+ */
+export interface FreezeFeatures {
+  buy: BuyClass | null;
+  code: Reason["code"];
+  side: Side;
+  averageCash: number;
+  lossBonus: number;
+  primaryRatio: number;
+  enemyAverageLow: number;
+  enemyAverageHigh: number;
+}
+
 function average(values: readonly number[]): number {
   if (values.length === 0) return 0;
   return values.reduce((total, value) => total + value, 0) / values.length;
@@ -50,6 +65,11 @@ function reason(code: Reason["code"], fields: Omit<Reason, "code">): Reason {
  * or sends input.
  */
 export function evaluateFreeze(input: FreezeSnapshot): FreezeAdvice {
+  return assessFreeze(input).advice;
+}
+
+/** Shared read for `evaluateFreeze` and `evaluateBuyOptions`. */
+export function assessFreeze(input: FreezeSnapshot): { advice: FreezeAdvice; features: FreezeFeatures } {
   const warnings: WarningCode[] = [];
   const overtimeLimit = input.overtimeLimit ?? (OVERTIME_LIMIT_PREMIER.value as 0 | 1);
   const context = roundContext(input.roundNumber);
@@ -85,6 +105,8 @@ export function evaluateFreeze(input: FreezeSnapshot): FreezeAdvice {
   const roster = cleanPlayers(input.ourPlayers, warnings);
   const cash = roster.map((player) => player.cash);
   const averageCash = average(cash);
+  const primaryRatio =
+    roster.length === 0 ? 0 : roster.filter((player) => player.hasPrimary).length / roster.length;
   const enemy = cashBand(enemyLedger.low, enemyLedger.high);
   const fields = {
     lossBonus: lossBonusForCount(ourLossCount),
@@ -125,7 +147,14 @@ export function evaluateFreeze(input: FreezeSnapshot): FreezeAdvice {
     buy = "full";
     code = "overtime_full";
   } else {
-    const decided = chooseBuy(input.ourSide, roster, averageCash, fields.lossBonus, enemy.averageLow, enemy.averageHigh);
+    const decided = chooseBuy(
+      input.ourSide,
+      primaryRatio,
+      averageCash,
+      fields.lossBonus,
+      enemy.averageLow,
+      enemy.averageHigh,
+    );
     buy = decided.buy;
     code = decided.code;
   }
@@ -134,7 +163,7 @@ export function evaluateFreeze(input: FreezeSnapshot): FreezeAdvice {
   const richerBuy = context.pistol ? "full" : buyClassForCash(enemy.averageHigh, enemySide);
   const confidence = context.pistol ? "high" : poorerBuy === richerBuy ? readConfidence(enemy) : "low";
 
-  return {
+  const advice: FreezeAdvice = {
     buy,
     reason: reason(code, fields),
     our: {
@@ -163,17 +192,33 @@ export function evaluateFreeze(input: FreezeSnapshot): FreezeAdvice {
     score,
     warnings: [...new Set(warnings)],
   };
+  return {
+    advice,
+    features: {
+      buy,
+      code,
+      side: input.ourSide,
+      averageCash,
+      lossBonus: fields.lossBonus,
+      primaryRatio,
+      enemyAverageLow: enemy.averageLow,
+      enemyAverageHigh: enemy.averageHigh,
+    },
+  };
 }
 
+/**
+ * Same predicates `evaluateBuyOptions` scores. On a live round the class
+ * returned here is that score's unique maximum.
+ */
 function chooseBuy(
   side: Side,
-  roster: readonly PlayerSnapshot[],
+  primaryRatio: number,
   averageCash: number,
   lossBonus: number,
   enemyAverageLow: number,
   enemyAverageHigh: number,
 ): { buy: BuyClass; code: Reason["code"] } {
-  const primaryRatio = roster.filter((player) => player.hasPrimary).length / roster.length;
   const holding = primaryRatio >= POLICY.savePrimaryRatio.value && averageCash < utilityBuyCash(side);
   if (holding) return { buy: "save", code: "save_hold" };
 

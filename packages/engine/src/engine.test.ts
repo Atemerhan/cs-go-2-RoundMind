@@ -2,20 +2,30 @@ import { describe, expect, it } from "vitest";
 import {
   CASH_FLOOR,
   KILL_REWARDS,
+  LOSS_BONUS_STEP,
   LOSS_COUNT_STORAGE_CAPPED,
   MAX_MONEY,
   PLANT_TEAM_AWARD,
+  POLICY,
   PRICES,
   RULE_CATALOG,
   START_MONEY,
   TIMEOUT_SURVIVOR_FORFEIT_IS_FACT,
   WIN_BOMB_EXPLODE,
+  evaluateBuyOptions,
   evaluateFreeze,
+  forceBuyCash,
+  fullBuyCash,
   lossBonusForCount,
   matchState,
   nextLossCount,
   projectEconomy,
   rulesByVerification,
+  utilityBuyCash,
+  type BuyClass,
+  type BuyOption,
+  type FreezeSnapshot,
+  type Side,
 } from "./index.js";
 import { ecoSnapshot, forceSnapshot, fullSnapshot, overtimeSnapshot, pistolSnapshot, saveSnapshot } from "./presets.js";
 import { rosterOf } from "./recommend.js";
@@ -192,6 +202,188 @@ describe("buy calls", () => {
     expect(advice.live).toBe(false);
     expect(advice.buy).toBeNull();
     expect(advice.reason.code).toBe("match_over");
+  });
+});
+
+describe("buy option scores", () => {
+  const classes = {
+    full: true,
+    force: true,
+    eco: true,
+    save: true,
+  } satisfies Record<BuyClass, true>;
+
+  function table(options: BuyOption[]): Record<BuyClass, number> {
+    const scored = {
+      full: Number.NaN,
+      force: Number.NaN,
+      eco: Number.NaN,
+      save: Number.NaN,
+    } satisfies Record<BuyClass, number>;
+    expect(options.map((row) => row.buy)).toEqual(["full", "force", "eco", "save"]);
+    for (const row of options) {
+      expect(Object.hasOwn(classes, row.buy)).toBe(true);
+      expect(Number.isFinite(row.expectedValue)).toBe(true);
+      scored[row.buy] = row.expectedValue;
+    }
+    return scored;
+  }
+
+  function expectMatchesFreeze(snapshot: FreezeSnapshot, label: string) {
+    const advice = evaluateFreeze(snapshot);
+    const options = table(evaluateBuyOptions(snapshot));
+    const ranked = (Object.keys(classes) as BuyClass[]).sort((a, b) => options[b] - options[a]);
+    const best = ranked[0];
+    const second = ranked[1];
+    if (advice.buy === null) {
+      for (const buy of Object.keys(classes) as BuyClass[]) {
+        expect(options[buy], label).toBe(0);
+      }
+      return;
+    }
+    expect(best, label).toBe(advice.buy);
+    expect(options[best], label).toBeGreaterThan(options[second]);
+  }
+
+  it("scores pistol, force, and full from the same lines the buy call uses", () => {
+    const step = LOSS_BONUS_STEP.value;
+    const pistol = table(evaluateBuyOptions(pistolSnapshot()));
+    expect(evaluateFreeze(pistolSnapshot()).buy).toBe("full");
+    expect(pistol.full * step).toBeCloseTo(POLICY.pistolSpendLow.value, 5);
+    expect(pistol.force * step).toBeCloseTo(POLICY.pistolSpendHigh.value, 5);
+    expect(pistol.eco).toBeCloseTo(0, 8);
+    expect(pistol.save).toBeCloseTo(-POLICY.savePrimaryRatio.value, 8);
+    expect(pistol.full).toBeGreaterThan(pistol.force);
+    expect(pistol.force).toBeGreaterThan(pistol.eco);
+    expect(pistol.eco).toBeGreaterThan(pistol.save);
+
+    const full = table(evaluateBuyOptions(fullSnapshot()));
+    const fullCash = 5000;
+    const fullBundle =
+      (Math.min(fullCash, POLICY.tFullSpendLow.value) + Math.min(fullCash, POLICY.tFullSpendHigh.value)) / 2;
+    const forceBundle =
+      (Math.min(fullCash, POLICY.tForceSpendLow.value) + Math.min(fullCash, POLICY.tForceSpendHigh.value)) / 2;
+    const ecoBundle = (Math.min(fullCash, POLICY.ecoSpendLow.value) + Math.min(fullCash, POLICY.ecoSpendHigh.value)) / 2;
+    const fullSlack = fullCash - fullBuyCash("T");
+    expect(evaluateFreeze(fullSnapshot()).buy).toBe("full");
+    expect(full.full * step).toBeCloseTo(fullSlack, 5);
+    expect(full.force * step).toBeCloseTo(fullSlack - (fullBundle - forceBundle), 5);
+    expect(full.eco * step).toBeCloseTo(fullSlack - (fullBundle - ecoBundle), 5);
+    expect(full.save * step).toBeCloseTo(fullSlack - fullBundle, 5);
+    expect(full.full).toBeGreaterThan(full.force);
+    expect(full.force).toBeGreaterThan(full.eco);
+
+    const forced = table(evaluateBuyOptions(forceSnapshot()));
+    expect(evaluateFreeze(forceSnapshot()).buy).toBe("force");
+    expect(forced.force * step).toBeCloseTo(2500 - forceBuyCash("T"), 5);
+    expect(forced.force).toBeGreaterThan(forced.full);
+    expect(forced.force).toBeGreaterThan(forced.eco);
+    expect(forced.force).toBeGreaterThan(forced.save);
+  });
+
+  it("scores a held rifle by the utility shortfall", () => {
+    const step = LOSS_BONUS_STEP.value;
+    const saved = table(evaluateBuyOptions(saveSnapshot()));
+    const shortfall = utilityBuyCash("T") - 2000;
+    expect(evaluateFreeze(saveSnapshot()).buy).toBe("save");
+    expect(saved.save * step).toBeCloseTo(shortfall, 5);
+    expect(saved.full).toBeCloseTo(0, 8);
+    expect(saved.force * step).toBeCloseTo(-(fullBuyCash("T") - forceBuyCash("T")), 5);
+    expect(saved.eco * step).toBeCloseTo(-fullBuyCash("T"), 5);
+  });
+
+  it("returns every class on the presets and matches the freeze call", () => {
+    expectMatchesFreeze(pistolSnapshot(), "pistol");
+    expectMatchesFreeze(pistolSnapshot("CT"), "ct pistol");
+    expectMatchesFreeze(ecoSnapshot(), "eco");
+    expectMatchesFreeze(forceSnapshot(), "force");
+    expectMatchesFreeze(fullSnapshot(), "full");
+    expectMatchesFreeze(saveSnapshot(), "save");
+    expectMatchesFreeze(overtimeSnapshot(), "overtime");
+  });
+
+  it("scores nothing once the match is over, drawn, or the roster is empty", () => {
+    expectMatchesFreeze(
+      {
+        roundNumber: 14,
+        ourSide: "T",
+        ourPlayers: rosterOf(5000, false),
+        history: Array.from({ length: 13 }, () => ({ winner: "T" as const, reason: "elimination" as const })),
+      },
+      "match over",
+    );
+    expectMatchesFreeze(
+      {
+        roundNumber: 31,
+        ourSide: "T",
+        overtimeLimit: 1,
+        ourPlayers: rosterOf(10_000, false),
+        history: [
+          ...Array.from({ length: 15 }, () => ({ winner: "T" as const, reason: "elimination" as const })),
+          ...Array.from({ length: 15 }, () => ({ winner: "CT" as const, reason: "elimination" as const })),
+        ],
+        score: { T: 15, CT: 15 },
+      },
+      "draw",
+    );
+    expectMatchesFreeze(
+      { roundNumber: 4, ourSide: "CT", ourPlayers: [], history: [] },
+      "empty",
+    );
+  });
+
+  it("keeps the freeze recommendation as the unique maximum across cash and history", () => {
+    const cashes = [0, 800, 1600, 2000, 2500, 3700, 3900, 4600, 5000, 8000, 10_000];
+    const sides: Side[] = ["T", "CT"];
+    for (const side of sides) {
+      for (const cash of cashes) {
+        for (const hasPrimary of [false, true]) {
+          expectMatchesFreeze(
+            { roundNumber: 1, ourSide: side, ourPlayers: rosterOf(cash, hasPrimary), history: [] },
+            `pistol ${side} ${cash} primary=${hasPrimary}`,
+          );
+          expectMatchesFreeze(
+            {
+              roundNumber: 2,
+              ourSide: side,
+              ourPlayers: rosterOf(cash, hasPrimary),
+              history: [{ winner: side, reason: "elimination" }],
+            },
+            `won pistol ${side} ${cash} primary=${hasPrimary}`,
+          );
+          expectMatchesFreeze(
+            {
+              roundNumber: 2,
+              ourSide: side,
+              ourPlayers: rosterOf(cash, hasPrimary),
+              history: [{ winner: side === "T" ? "CT" : "T", reason: "elimination" }],
+            },
+            `lost pistol ${side} ${cash} primary=${hasPrimary}`,
+          );
+          expectMatchesFreeze(
+            {
+              roundNumber: 6,
+              ourSide: side,
+              ourPlayers: [
+                { cash, hasPrimary },
+                { cash: cash + 400, hasPrimary },
+                { cash: Math.max(0, cash - 250), hasPrimary: !hasPrimary },
+                { cash, hasPrimary: false },
+                { cash: cash + 50, hasPrimary: true },
+              ],
+              history: [
+                { winner: side === "T" ? "CT" : "T", reason: "elimination" },
+                { winner: side === "T" ? "CT" : "T", reason: "bomb_explode" },
+                { winner: side, reason: "elimination" },
+                { winner: side === "T" ? "CT" : "T", reason: "time", alive: { T: 2 } },
+                { winner: side === "T" ? "CT" : "T", reason: "bomb_defuse" },
+              ],
+            },
+            `mixed ${side} ${cash} primary=${hasPrimary}`,
+          );
+        }
+      }
+    }
   });
 });
 

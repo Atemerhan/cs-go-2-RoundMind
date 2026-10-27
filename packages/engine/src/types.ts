@@ -209,3 +209,27 @@ export interface FreezeAdvice {
   score: Score;
   warnings: WarningCode[];
 }
+
+/**
+ * One buy class scored from the same freeze `evaluateFreeze` reads.
+ * `evaluateBuyOptions` returns every class, in the order full, force, eco, save.
+ */
+export interface BuyOption {
+  buy: BuyClass;
+  /**
+   * Relative policy score in loss-bonus steps. One point is
+   * `LOSS_BONUS_STEP` dollars ($500) of a gap the buy call already
+   * compares: cash against the full, force, or utility line, the loss
+   * bonus that finishes the next rifle buy, or a loadout from the policy
+   * bundles the projector spends. Not estimated round-win dollars.
+   *
+   * On a live round the unique maximum is the class `evaluateFreeze`
+   * returns, equal to the slack on the rule that fired (0 when cash sits
+   * on that line). Every other class is lower by the gap it gives up.
+   * `chosen.expectedValue - best` is the regret of a freeze.
+   *
+   * When `evaluateFreeze` returns `buy: null` (empty roster, match already
+   * decided, or a Premier draw), every class is 0.
+   */
+  expectedValue: number;
+}

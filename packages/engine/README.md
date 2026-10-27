@@ -2,7 +2,7 @@
 
 Deterministic CS2 Premier bomb-defusal economy. No DOM, no network, no game process.
 
-A later official GSI adapter should fill `FreezeSnapshot` and call `evaluateFreeze`. This package does not open a socket and does not read memory. Enemy positions are not a field on the input.
+A later official GSI adapter should fill `FreezeSnapshot` and call `evaluateFreeze`. Post-match review can pass that same snapshot to `evaluateBuyOptions` and rank the buy the team actually made. This package does not open a socket and does not read memory. Enemy positions are not a field on the input.
 
 Numeric status matches the sources doc (`docs/economy-rules.json` on the docs branch). This package does not own that file. Anything the sources pass left open is `unverified` in `src/rules.ts` and is not treated as a fact by the buy call.
 
@@ -36,6 +36,39 @@ advice.enemy.band; // min/max per player and for the team of 5
 ```
 
 `buy === null` when the roster is empty, Premier has drawn 15–15, or a team has already won.
+
+## Compare every class
+
+`evaluateFreeze` stays the one recommendation. `evaluateBuyOptions` scores the same snapshot so a caller can rank a buy the team actually made.
+
+```ts
+import { evaluateBuyOptions, evaluateFreeze, type BuyClass, type FreezeSnapshot } from "@roundmind/engine";
+
+declare const snapshot: FreezeSnapshot;
+declare const teamBuy: BuyClass; // class the team actually purchased
+
+evaluateFreeze(snapshot).buy; // the unique best class, or null
+
+const options = evaluateBuyOptions(snapshot);
+// BuyOption[] in order: full, force, eco, save
+// { buy: BuyClass; expectedValue: number }
+
+const best = Math.max(...options.map((row) => row.expectedValue));
+const played = options.find((row) => row.buy === teamBuy);
+const regret = (played?.expectedValue ?? 0) - best; // 0 if the team matched, otherwise negative
+```
+
+`expectedValue` is a relative policy score in **loss-bonus steps**. One point equals `LOSS_BONUS_STEP` dollars ($500). Multiply by `LOSS_BONUS_STEP.value` to recover that many dollars of threshold gap. It is not estimated round-win money and not a prize.
+
+The gaps are the ones the buy call already uses:
+
+- cash versus the full, force, or utility line
+- `averageCash + lossBonus` versus the next rifle buy (the eco-versus-force test)
+- the poor and rich loadout bundles the projector spends for that class
+
+On a live round the maximum is unique and is `evaluateFreeze(...).buy`. The value at that maximum is the slack on the rule that fired, and it is 0 when cash sits on the line. A pistol round's full-buy slack is the poor-path pistol bundle ($800), which is what the projector spends. Every other class is lower by the gap it gives up, and by at least $1 (0.002 steps) so a rounded tie cannot create a second maximum. There is no class-name tie-break. Subtracting the maximum cancels the slack, so the same kind of miss ranks the same on a $5,000 rifle round and a $10,000 overtime round.
+
+When the roster is empty, the match is already over, or Premier has drawn, every `expectedValue` is 0 and `buy` is null.
 
 ## Input a GSI adapter may fill
 

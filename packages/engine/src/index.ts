@@ -46,6 +46,7 @@ export type { Rule, Verification, WeaponId } from "./rules.js";
 export type {
   Assumption,
   BuyClass,
+  BuyOption,
   CashBand,
   CompletedRound,
   EnemyRead,
@@ -90,6 +91,7 @@ export type { MatchState } from "./money.js";
 export { buyClassForCash, cashBand, projectEconomy, readConfidence } from "./project.js";
 
 export { evaluateFreeze, rosterOf } from "./recommend.js";
+export { evaluateBuyOptions } from "./options.js";
 
 export {
   ecoSnapshot,
