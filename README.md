@@ -44,16 +44,49 @@ curl -fsS -H 'Content-Type: application/json' --data-binary @packages/gsi/fixtur
 
 Live advice uses own-side data reported during freeze time. The manual form supplies the calculation during other phases or when match data is unavailable. The web app shows how many teammates have reported cash, and missing cash stays unknown. Players make their own purchases. GSI is read-only, position and grenade feeds are off, and the calculator estimates opponent economy from round history.
 
+## 赛后复盘 / Post-match review
+
+从仓库根目录运行样例，或传入自己的回合 JSON。复盘用 zhasi 的经济引擎按「最佳购买评分 − 实际购买评分」排序，默认输出差距最大的三轮和中英文解释。分数是规则模型中的相对值，单位为一档连败奖金。
+
+Run the built-in example from the repo root, or pass your own rounds as JSON. The review ranks the gap between the best and played buys using zhasi's economy engine. It reports up to three rounds with bilingual explanations. The score is relative to the policy model and is measured in loss-bonus steps.
+
+```bash
+npm run review -w @roundmind/post-match
+npm run review -w @roundmind/post-match -- ./match.json
+```
+
+每条记录填写回合编号、实际买法、该轮胜负和买枪前的快照。/ Each entry records the round number, actual buy, round winner, and pre-buy snapshot.
+
+```json
+[
+  {
+    "roundNumber": 1,
+    "chosenBuy": "eco",
+    "winner": "us",
+    "state": {
+      "roundNumber": 1,
+      "ourSide": "CT",
+      "ourPlayers": [{ "cash": 800, "hasPrimary": false }],
+      "history": []
+    }
+  }
+]
+```
+
+实际买法为 `full`、`force`、`eco` 或 `save`，胜方为 `us` 或 `them`。数据由你填写或从已有记录整理。/ Use `full`, `force`, `eco`, or `save` for the buy and `us` or `them` for the winner. Supply the data manually or prepare it from existing logs.
+
 ## 项目状态 / Project status
 
 | 模块 / Module | 状态 / Status |
 | --- | --- |
 | 经济引擎 / Economy engine | [`evaluateFreeze`](packages/engine/README.md)，由 zhasi 实现 |
 | 双语计算器 / Bilingual calculator | 手动试算与本机 GSI / Manual calculator and local GSI |
-| 购买方案评分 / Buy-option scoring | [#6](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/6)，待合并 / Pending |
-| 赛后复盘 / Post-match review | [#1](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/1)，待合并 / Pending |
+| 购买方案评分 / Buy-option scoring | [`evaluateBuyOptions`](packages/engine/README.md)，由 zhasi 实现 |
+| 赛后复盘 / Post-match review | [本地命令行 / Local CLI](post-match) |
 
 经济规则的来源和核实状态见[规则文档](docs/economy-rules-sources.md)，机器可读版本在 [`economy-rules.json`](docs/economy-rules.json)。/ The [rules reference](docs/economy-rules-sources.md) lists sources and verification status. [`economy-rules.json`](docs/economy-rules.json) is its machine-readable companion.
+
+产品的公平竞赛边界见[合规章程](docs/COMPLIANCE.md)。/ See the [fair-play charter](docs/COMPLIANCE.md) for the product boundaries.
 
 ### GitHub Pages
 
