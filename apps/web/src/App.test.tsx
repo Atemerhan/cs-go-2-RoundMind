@@ -112,6 +112,22 @@ describe("calculator", () => {
     expect(recommendation().getAttribute("data-buy")).toBe("full");
     expect(screen.getByTestId("call-source").textContent).toContain("手动");
   });
+
+  it("returns to the manual form when the round leaves freeze time", async () => {
+    let phase = "freezetime";
+    vi.stubGlobal("fetch", async () => ({
+      ok: true,
+      text: async () => JSON.stringify({ ...liveEco(), round: { phase } }),
+    }));
+    render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: "本机直播（GSI）" }));
+    await waitFor(() => expect(recommendation().getAttribute("data-buy")).toBe("eco"));
+
+    phase = "live";
+    await waitFor(() => expect(screen.getByTestId("gsi-status").textContent).toContain("当前使用手动表"), { timeout: 2500 });
+    expect(recommendation().getAttribute("data-buy")).toBe("full");
+    expect(screen.getByTestId("call-source").textContent).toContain("手动");
+  });
 });
 
 function liveEco() {

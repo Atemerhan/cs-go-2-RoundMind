@@ -1,0 +1,52 @@
+{
+  "provider": { "name": "Counter-Strike 2", "appid": 730, "timestamp": 1730002000 },
+  "map": {
+    "mode": "competitive",
+    "name": "de_nuke",
+    "phase": "live",
+    "round": 25,
+    "team_ct": { "score": 12, "consecutive_round_losses": 1 },
+    "team_t": { "score": 12, "consecutive_round_losses": 0 },
+    "round_wins": {
+      "1": "ct_win_elimination",
+      "2": "ct_win_elimination",
+      "3": "t_win_elimination",
+      "4": "ct_win_time",
+      "5": "t_win_bomb",
+      "6": "ct_win_elimination",
+      "7": "ct_win_defuse",
+      "8": "t_win_elimination",
+      "9": "ct_win_elimination",
+      "10": "t_win_elimination",
+      "11": "ct_win_elimination",
+      "12": "t_win_bomb",
+      "13": "t_win_elimination",
+      "14": "t_win_bomb",
+      "15": "ct_win_elimination",
+      "16": "t_win_elimination",
+      "17": "ct_win_defuse",
+      "18": "t_win_elimination",
+      "19": "ct_win_elimination",
+      "20": "t_win_bomb",
+      "21": "ct_win_time",
+      "22": "t_win_elimination",
+      "23": "ct_win_elimination",
+      "24": "t_win_elimination"
+    }
+  },
+  "round": { "phase": "freezetime" },
+  "phase_countdowns": { "phase": "freezetime", "phase_ends_in": "10.5" },
+  "allplayers": {
+    "76561198000000001": {
+      "name": "Ava",
+      "team": "CT",
+      "state": { "money": 10400, "equip_value": 0, "armor": 0, "helmet": false }
+    },
+    "76561198000000011": {
+      "name": "Cai",
+      "team": "T",
+      "state": { "money": 2300, "equip_value": 2900, "armor": 100, "helmet": true }
+    }
+  },
+  "bomb": { "state": "carried", "player": "76561198000000011" }
+}

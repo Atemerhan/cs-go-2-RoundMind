@@ -1,0 +1,80 @@
+{
+  "provider": {
+    "name": "Counter-Strike 2",
+    "appid": 730,
+    "version": 14070,
+    "steamid": "76561198000000001",
+    "timestamp": 1730000001
+  },
+  "auth": {
+    "token": "roundmind-local-dev"
+  },
+  "map": {
+    "mode": "competitive",
+    "name": "de_mirage",
+    "phase": "live",
+    "round": 1,
+    "team_ct": { "score": 0, "consecutive_round_losses": 0 },
+    "team_t": { "score": 0, "consecutive_round_losses": 0 }
+  },
+  "round": {
+    "phase": "freezetime"
+  },
+  "phase_countdowns": {
+    "phase": "freezetime",
+    "phase_ends_in": "15.0"
+  },
+  "player": {
+    "steamid": "76561198000000001",
+    "name": "Ava",
+    "team": "CT",
+    "activity": "playing",
+    "state": {
+      "health": 100,
+      "armor": 0,
+      "helmet": false,
+      "money": 800,
+      "equip_value": 200
+    },
+    "weapons": {
+      "weapon_0": { "name": "weapon_knife", "type": "Knife", "state": "holstered" },
+      "weapon_1": { "name": "weapon_usp_silencer", "type": "Pistol", "state": "active" }
+    }
+  },
+  "allplayers": {
+    "76561198000000001": {
+      "name": "Ava",
+      "team": "CT",
+      "position": "sentinel-x, sentinel-y, sentinel-z",
+      "forward": "0, 1, 0",
+      "state": { "health": 100, "armor": 0, "helmet": false, "money": 800, "equip_value": 200 },
+      "weapons": {
+        "weapon_0": { "name": "weapon_knife", "type": "Knife", "state": "holstered" },
+        "weapon_1": { "name": "weapon_usp_silencer", "type": "Pistol", "state": "active" }
+      }
+    },
+    "76561198000000002": {
+      "name": "Bo",
+      "team": "CT",
+      "state": { "health": 100, "armor": 0, "helmet": false, "money": 800, "equip_value": 200 }
+    },
+    "76561198000000011": {
+      "name": "Cai",
+      "team": "T",
+      "state": { "health": 100, "armor": 0, "helmet": false, "money": 800, "equip_value": 200 }
+    },
+    "76561198000000012": {
+      "name": "Dee",
+      "team": "T",
+      "state": { "health": 100, "armor": 0, "helmet": false, "money": 800, "equip_value": 0 }
+    }
+  },
+  "bomb": {
+    "state": "carried",
+    "position": "bomb-x, bomb-y, bomb-z",
+    "player": "76561198000000011"
+  },
+  "previously": {
+    "marker": "not-part-of-gamestate"
+  }
+}

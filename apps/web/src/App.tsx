@@ -109,7 +109,7 @@ export function App() {
     return gameStateToFreeze(poll.body, { fallbackSide: side, overtimeLimit });
   }, [mode, overtimeLimit, poll, side]);
 
-  const liveSnapshot = parsed?.ok ? parsed.snapshot : null;
+  const liveSnapshot = parsed?.ok && parsed.phase === "freezetime" ? parsed.snapshot : null;
 
   useEffect(() => {
     const now = Boolean(liveSnapshot);
@@ -316,6 +316,7 @@ function liveStatus(lang: Lang, mode: "manual" | "live", poll: Poll, parsed: Ret
     if (parsed?.reason === "needs-side") return text.statusNeedsSide;
     return text.statusInvalid;
   }
+  if (parsed.phase !== "freezetime") return text.statusOutsideFreeze(phaseLabel(lang, parsed.phase));
   return text.statusReady(parsed.snapshot.roundNumber, phaseLabel(lang, parsed.phase), sideLabel(lang, parsed.snapshot.ourSide));
 }
 

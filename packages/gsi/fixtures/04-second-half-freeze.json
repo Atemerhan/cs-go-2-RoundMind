@@ -1,0 +1,50 @@
+{
+  "provider": { "name": "Counter-Strike 2", "appid": 730, "timestamp": 1730001000 },
+  "map": {
+    "mode": "competitive",
+    "name": "de_inferno",
+    "phase": "live",
+    "round": 13,
+    "team_ct": { "score": 7, "consecutive_round_losses": 1 },
+    "team_t": { "score": 5, "consecutive_round_losses": 0 },
+    "round_wins": {
+      "1": "ct_win_elimination",
+      "2": "ct_win_elimination",
+      "3": "t_win_elimination",
+      "4": "ct_win_time",
+      "5": "t_win_bomb",
+      "6": "ct_win_elimination",
+      "7": "ct_win_defuse",
+      "8": "t_win_elimination",
+      "9": "ct_win_elimination",
+      "10": "t_win_elimination",
+      "11": "ct_win_elimination",
+      "12": "t_win_bomb"
+    }
+  },
+  "round": { "phase": "freezetime" },
+  "phase_countdowns": { "phase": "freezetime", "phase_ends_in": "15.0" },
+  "allplayers": {
+    "76561198000000001": {
+      "name": "Ava",
+      "team": "T",
+      "state": {
+        "money": 4200,
+        "equip_value": 0,
+        "armor": 100,
+        "helmet": true,
+        "defusekit": false
+      },
+      "weapons": {
+        "weapon_1": { "name": "weapon_glock", "type": "Pistol", "state": "active" },
+        "weapon_0": { "name": "weapon_knife", "type": "Knife", "state": "holstered" }
+      }
+    },
+    "76561198000000011": {
+      "name": "Cai",
+      "team": "CT",
+      "state": { "money": 5500, "equip_value": 800, "armor": 100, "helmet": false, "defusekit": true }
+    }
+  },
+  "bomb": { "state": "carried", "player": "76561198000000001" }
+}

@@ -1,152 +1,62 @@
 # RoundMind
 
-CS2 Premier / Competitive 的冻结时间经济教练。冻结时间里，按公开规则和己方现金给出一种购买：**满购、强起、白给或存枪**，再附一句理由。对手现金留在估算里：引擎按已经打完的回合给出一条经济带。
+RoundMind 是 CS2 Premier / Competitive 爆破模式的冻结时间经济教练。Möbi 用己方现金、已有装备和已结束的回合给出满购、强起、白给或存枪建议，并说明理由。对手经济以区间估算显示。
 
-买不买由玩家自己决定。数据只走官方 Game State Integration。建议在冻结时间和赛后给出；不读内存，不注入，不模拟键鼠，也不提供敌人位置、准星或对局中的操作指令。
+RoundMind is a freeze-time economy coach for CS2 Premier and Competitive defusal matches. Möbi uses your side's cash, equipment, and completed rounds to suggest a full buy, force buy, eco, or save, with a short explanation. Opponent economy is shown as an estimated range.
 
-> [!IMPORTANT]
-> **main 上现在只有规则文档。** 已合并的是 [#2](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/2)。引擎、网页计算器、GSI 和赛后复盘都还在未合并的 PR 里。根目录没有 `package.json`，在 main 上不能 `npm run dev`。
->
-> 数字核对：**[docs/economy-rules-sources.md](docs/economy-rules-sources.md)**。规则表 39 行里 32 条已核实、7 条未核实。结构化副本是 [docs/economy-rules.json](docs/economy-rules.json)。引擎落地后对照这两份，不另写一套金额。
+## 本地试玩 / Run locally
 
-## MVP 范围
-
-范围是爆破模式的 Premier / Competitive：常规时间最多 24 回合，先到 13 胜。人质图和社区服自定义 cfg 不在这套数字里。
-
-| 能力 | 状态 | 落点 |
-| --- | --- | --- |
-| 经济数字核对（来源、引文、核实状态） | 已在 main（[#2](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/2)） | `docs/` |
-| 确定性购买建议 `evaluateFreeze` | [#3](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/3) 未合并 | `packages/engine` |
-| 冻结时间计算器（中文 / 英文） | [#3](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/3) 未合并 | `apps/web` |
-| 计算器界面，以及可选的 Live | [#5](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/5)，叠在 #3 的分支上 | `apps/web` |
-| 四种购买的 `evaluateBuyOptions`（`expectedValue`） | [#6](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/6)，叠在 #3 上；#3 进 main 后再把目标改到 main | `packages/engine` |
-| 官方 GSI → `toFreezeSnapshot`，本地 `GET /state` | [#4](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/4) 未合并 | `packages/gsi` |
-| 赛后决策复盘，合规章程 | [#1](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/1) 未合并 | `post-match/`、`docs/COMPLIANCE.md` |
-
-来源文档里有 7 条未核实。#3 在 `packages/engine/src/rules.ts` 里用 `unverified` 标出这些还不能当成事实的项。超时扣给谁还没定，购买建议不用它来选存枪或强起。
-
-## 架构
-
-调用方准备一份 `FreezeSnapshot`，引擎返回建议。金额只在引擎里算。网页、GSI、赛后复盘都是调用方。
-
-```text
-docs/economy-rules.json          已核实的金额
-        │
-        ▼
-@roundmind/engine
-  evaluateFreeze(FreezeSnapshot)     → 一种购买、理由、对方经济带
-  evaluateBuyOptions(FreezeSnapshot) → BuyOption[]          （#6 才有）
-        ▲                 ▲                      ▲
-   apps/web          packages/gsi           post-match
-   手填表单           官方 GSI               用两份结果排漏损
-   #5 的 Live         toFreezeSnapshot
-   读本地 /state
-```
-
-`FreezeSnapshot` 上有 `roundNumber`、`ourSide`、`ourPlayers`、`history`，可选 `overtimeLimit`（Premier 用 `1`）、`score`、`lossCount`。回合结束原因是 `elimination`、`bomb_explode`、`bomb_defuse`、`time`。对手现金留在引擎估出的 `enemy.band` 里。
-
-#3 和 #6 都进 main 之后，引擎入口是：
-
-```ts
-evaluateFreeze(snapshot); // buy、reason.code、enemy.band
-evaluateBuyOptions(snapshot); // BuyOption[]，顺序 full、force、eco、save
-```
-
-`buy` 是 `"full" | "force" | "eco" | "save" | null`。名单为空、比赛已经结束、或 Premier 打成 15–15 时是 `null`。
-
-`expectedValue` 以失败奖金的一档计：1 点 = $500（`LOSS_BONUS_STEP`）。赛后把漏损记成 `best.expectedValue - chosen.expectedValue`（正数）。
-
-`packages/gsi` 的 `GET /state` 返回归一化后的 `GameState`。`toFreezeSnapshot(gameState)` 再收成 `FreezeSnapshot`。#5 的 Live 只 HTTP 拉取 `http://127.0.0.1:3000/state`，在网页里转成引擎输入，页面不引用 `@roundmind/gsi`。转换时丢掉对手现金。监听没开、还没有对局、或返回的不是对局状态时，计算器继续用手填的表。
-
-## 目录
-
-main 上现在只有 `README.md` 和 `docs/` 里的两份规则。下表其余路径随对应 PR 进来。
-
-| 路径 | 内容 | 什么时候有 |
-| --- | --- | --- |
-| `docs/economy-rules-sources.md` | 来源、引文、核实状态 | 已在 main |
-| `docs/economy-rules.json` | 同一份数字，给以后和 `rules.ts` 对照 | 已在 main |
-| `packages/engine` | `@roundmind/engine`，无 DOM、无网络 | #3；`evaluateBuyOptions` 在 #6 |
-| `apps/web` | `@roundmind/web`，Vite + React | #3；界面和 Live 在 #5 |
-| `packages/gsi` | `@roundmind/gsi`，只读 GSI | #4 |
-| `post-match` | `@roundmind/post-match` | #1 |
-| `docs/COMPLIANCE.md` | 合规章程 | #1 |
-
-#3 把仓库收成 npm workspace（`packages/*`、`apps/*`）。`post-match/` 在 workspace 外面，自己安装。`packages/gsi` 落在 `packages/*` 里；按 #4 的说明，进入该目录安装再启动。它的依赖里没有 `@roundmind/engine`。
-
-## 分工
-
-| 谁 | 负责 | 路径 |
-| --- | --- | --- |
-| zhasi | 经济引擎、规则数字、网页计算器 | `packages/engine`、`apps/web`、`docs/economy-rules-sources.md`、`docs/economy-rules.json` |
-| kohi | 计算器界面。引擎合并后再做。Live 只读 #4 的监听 | `apps/web` |
-| koki | 官方 GSI 收成 `toFreezeSnapshot`，交给 `evaluateFreeze` | `packages/gsi` |
-| ahi | 赛后复盘、合规章程 | `post-match/`、`docs/COMPLIANCE.md` |
-
-规则数字以 zhasi 的来源文档为准。koki 交给引擎的快照里只有己方现金。ahi 的复盘调用 zhasi 的两份结果：冻结建议走 `evaluateFreeze`，漏损排序走 `evaluateBuyOptions`。
-
-## 本地运行
-
-下面的命令来自各 PR 分支的 `package.json`。main 上还没有这些脚本。需要 Node.js 20 或以上。
-
-### 计算器（#3 合并之后）
-
-在仓库根目录：
+需要 Node.js 22（与 CI 一致）。/ Use Node.js 22 to match CI.
 
 ```bash
-npm install
-npm test
+npm ci
 npm run dev
 ```
 
-`npm run dev` 启动 `@roundmind/web`，打开 <http://localhost:5173>。`npm run build` 做类型检查并构建网页。
+打开 <http://127.0.0.1:5173>。选择「手枪局」「白给」或「加时」即可试算，也可以手填双方已结束的回合和己方阵容。右上角可切换中英文。
 
-#3 带了 GitHub Pages 工作流。推到 main、并且仓库打开 Pages 之后，才会发布计算器。现在没有线上地址。
-
-### GSI 监听（#4，可以单独跑）
+Open <http://127.0.0.1:5173>. Try the pistol, eco, or overtime preset, or edit your roster and round history. Use the language switch in the upper right.
 
 ```bash
-cd packages/gsi
-npm install
 npm test
-npm run dev
+npm run build
 ```
 
-监听 `http://127.0.0.1:3000`。
+## 本机 GSI / Local GSI
 
-| 路径 | 作用 |
+在第二个终端从仓库根目录启动监听器。/ Start the listener from the repository root in a second terminal.
+
+```bash
+npm run dev -w @roundmind/gsi -- --token roundmind-local-dev
+```
+
+将[示例配置](packages/gsi/examples/gamestate_integration_roundmind.cfg)复制到 CS2 的 `game/csgo/cfg/`，确认配置中的 token 与监听器一致，再重启 CS2。网页选择「本机直播（GSI）」。监听器绑定到 `127.0.0.1:3000`，本地网页通过 `GET /gsi/state` 读取状态。
+
+Copy the [example config](packages/gsi/examples/gamestate_integration_roundmind.cfg) into CS2's `game/csgo/cfg/`, match the listener token, and restart CS2. Select **Live (GSI)** in the local calculator. The listener binds to `127.0.0.1:3000` and the local web app reads state through `GET /gsi/state`.
+
+不启动 CS2 也可以在第三个终端发送一份冻结时间样例。/ Send a freeze-time fixture from a third terminal to try it without CS2.
+
+```bash
+curl -fsS -H 'Content-Type: application/json' --data-binary @packages/gsi/fixtures/01-pistol-round-freeze.json http://127.0.0.1:3000/gsi
+```
+
+实时建议使用冻结阶段收到的己方数据。其他阶段、未收到对局或监听不可用时，网页使用手动表。网页显示实际收到的己方人数，缺失的现金不会当作 $0。玩家自行购买。GSI 只读，位置和投掷物通道关闭，计算器用回合历史估算对方经济。详见 [GSI 配置与数据说明](packages/gsi/README.md)。
+
+Live advice uses own-side data reported during freeze time. The manual form supplies the calculation during other phases or when match data is unavailable. The web app shows how many teammates have reported cash, and missing cash stays unknown. Players make their own purchases. GSI is read-only, position and grenade feeds are off, and the calculator estimates opponent economy from round history.
+
+## 项目状态 / Project status
+
+| 模块 / Module | 状态 / Status |
 | --- | --- |
-| `POST /gsi` | Valve 的 GSI JSON |
-| `GET /state` | 最近一份归一化 `GameState` |
-| `GET /` | 同一份 JSON 的查看页 |
+| 经济引擎 / Economy engine | [`evaluateFreeze`](packages/engine/README.md)，由 zhasi 实现 |
+| 双语计算器 / Bilingual calculator | 手动试算与本机 GSI / Manual calculator and local GSI |
+| 购买方案评分 / Buy-option scoring | [#6](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/6)，待合并 / Pending |
+| 赛后复盘 / Post-match review | [#1](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/1)，待合并 / Pending |
 
-没有 CS2 客户端时，在 `packages/gsi` 里运行 `npm run mock`，按 `fixtures/` 走同一套归一化。配置示例是 `packages/gsi/examples/gamestate_integration_roundmind.cfg`，拷进游戏的 `game/csgo/cfg/` 后重启。示例只请求地图、回合、比分、金钱、装备和炸弹；位置和投掷物通道是关的。
+经济规则的来源和核实状态见[规则文档](docs/economy-rules-sources.md)，机器可读版本在 [`economy-rules.json`](docs/economy-rules.json)。/ The [rules reference](docs/economy-rules-sources.md) lists sources and verification status. [`economy-rules.json`](docs/economy-rules.json) is its machine-readable companion.
 
-### 可选 Live（#5，网页和监听都起来之后）
+### GitHub Pages
 
-开发服务器把同源的 `/gsi/state` 代理到 `http://127.0.0.1:3000`，因为监听不发 CORS 头。页面上显示的地址仍是 `http://127.0.0.1:3000/state`。
+Pages 只发布手动计算器的静态构建，本机 GSI 用本地网页体验。现有工作流已成功构建并上传产物，部署阶段返回 404。启用前先确认私有仓库支持 Pages，再在 [Settings → Pages](https://github.com/Atemerhan/cs-go-2-RoundMind/settings/pages) 将 Source 设为 **GitHub Actions**。配置后可重新运行 [Pages 工作流](https://github.com/Atemerhan/cs-go-2-RoundMind/actions/workflows/pages.yml)。
 
-### 赛后复盘（#1）
-
-```bash
-cd post-match
-npm install
-npm test
-npm run review
-```
-
-`npm test` 和 `npm run review` 会从 #6 的分支 `cursor/evaluate-buy-options-8c16` 取出 `@roundmind/engine` 再打分。样例只提供冻结快照，分数来自 `evaluateBuyOptions`。
-
-## 未合并的 PR
-
-| PR | 现在的目标分支 | 谁 | 内容 |
-| --- | --- | --- | --- |
-| [#3](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/3) | `main` | zhasi | `evaluateFreeze` 和网页计算器 |
-| [#5](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/5) | #3 的分支 `cursor/economy-engine-mvp-9f71` | kohi | 界面打磨，可选 Live |
-| [#6](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/6) | 同上，#3 的分支 | zhasi | `evaluateBuyOptions` 与 `expectedValue` |
-| [#4](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/4) | `main` | koki | `packages/gsi`：`toFreezeSnapshot` 和本地 `/state` |
-| [#1](https://github.com/Atemerhan/cs-go-2-RoundMind/pull/1) | `main` | ahi | 赛后复盘和 `docs/COMPLIANCE.md` |
-
-团队目前的合并顺序是 **#3 → #5 → #4 → #1**。#6 等 #3 进入 main，把目标分支改到 `main` 再合；#6 的说明里也是这么写的。#5 同样叠在 #3 上，#3 合并后也要改目标分支，再按上面的顺序合。
-
-#3 和 #4 都会改根目录 `README.md`，和本页会冲突。代码目录本身不重叠：引擎在 `packages/engine`，监听在 `packages/gsi`。
+Pages serves the static manual calculator. Use the local web app for GSI. The existing workflow built and uploaded the artifact, then received a 404 from the deployment endpoint. Confirm Pages is available for this private repository and set **GitHub Actions** as the source before rerunning the workflow. See [GitHub's Pages setup guide](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).

@@ -1,0 +1,36 @@
+{
+  "provider": { "name": "Counter-Strike 2", "appid": 730, "timestamp": 1730000100 },
+  "map": {
+    "mode": "competitive",
+    "name": "de_mirage",
+    "phase": "live",
+    "round": 2,
+    "team_ct": { "score": 1, "consecutive_round_losses": 0 },
+    "team_t": { "score": 0, "consecutive_round_losses": 1 }
+  },
+  "round": { "phase": "freezetime" },
+  "phase_countdowns": { "phase": "freezetime", "phase_ends_in": "14.2" },
+  "allplayers": {
+    "76561198000000001": {
+      "name": "Ava",
+      "team": "CT",
+      "state": { "money": 3500, "equip_value": 200, "armor": 0, "helmet": false }
+    },
+    "76561198000000002": {
+      "name": "Bo",
+      "team": "CT",
+      "state": { "money": 2800, "equip_value": 200, "armor": 0, "helmet": false }
+    },
+    "76561198000000011": {
+      "name": "Cai",
+      "team": "T",
+      "state": { "money": 1500, "equip_value": 0, "armor": 0, "helmet": false }
+    },
+    "76561198000000012": {
+      "name": "Dee",
+      "team": "T",
+      "state": { "money": 1900, "equip_value": 0, "armor": 0, "helmet": false }
+    }
+  },
+  "bomb": { "state": "carried", "player": "76561198000000011" }
+}
