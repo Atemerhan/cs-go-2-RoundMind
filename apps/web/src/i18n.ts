@@ -267,6 +267,7 @@ export interface Copy {
   statusInvalid: string;
   statusNeedsSide: string;
   statusReady: (round: number, phase: string, side: string) => string;
+  statusOutsideFreeze: (phase: string) => string;
   statusFallbackSide: string;
   callFromLive: string;
   callFromManual: string;
@@ -355,6 +356,7 @@ const zhCopy: Copy = {
   statusInvalid: "收到的内容不是对局状态，正在用手动表。",
   statusNeedsSide: "这场没有阵营。先在手动表里选匪或警。",
   statusReady: (round, phase, side) => `已连上 · 第 ${round} 回合 · ${phase} · ${side}`,
+  statusOutsideFreeze: (phase) => `已连上 · ${phase} · 实时建议将在冻结时间恢复，当前使用手动表。`,
   statusFallbackSide: "这场没有标明阵营，沿用手动表的选择。",
   callFromLive: "来自本机 GSI",
   callFromManual: "来自手动表",
@@ -443,6 +445,7 @@ const enCopy: Copy = {
   statusInvalid: "That payload is not a match state. Using the manual form.",
   statusNeedsSide: "This match has no side. Pick T or CT on the manual form.",
   statusReady: (round, phase, side) => `Connected · round ${round} · ${phase} · ${side}`,
+  statusOutsideFreeze: (phase) => `Connected · ${phase} · Live advice resumes at freeze time. Using the manual form.`,
   statusFallbackSide: "This match did not name a side. Using the manual form's side.",
   callFromLive: "From local GSI",
   callFromManual: "From the manual form",
