@@ -19,6 +19,7 @@
     "dev": "tsx src/cli.ts",
     "start": "node dist/cli.js",
     "mock": "tsx src/cli.ts --mock",
+    "convert": "tsx src/cli.ts --convert",
     "test": "vitest run && tsc -p tsconfig.json --noEmit",
     "test:watch": "vitest"
   },

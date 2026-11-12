@@ -73,7 +73,38 @@ npm run review -w @roundmind/post-match -- ./match.json
 ]
 ```
 
-实际买法为 `full`、`force`、`eco` 或 `save`，胜方为 `us` 或 `them`。数据由你填写或从已有记录整理。/ Use `full`, `force`, `eco`, or `save` for the buy and `us` or `them` for the winner. Supply the data manually or prepare it from existing logs.
+实际买法为 `full`、`force`、`eco` 或 `save`，胜方为 `us` 或 `them`。可以手写，也可以从本机 GSI 录制转换。/ Use `full`, `force`, `eco`, or `save` for the buy and `us` or `them` for the winner. Write the file by hand, or convert a local GSI recording.
+
+### 从本机 GSI 录制 / Record from local GSI
+
+监听器默认不落盘。加上 `--record` 后，每条已接受的 GSI 会追加到 JSONL（`v: 1`、`receivedAt`，以及去掉 token、坐标、朝向和投掷物之后的 `payload`）。格式见 [GSI 说明](packages/gsi/README.md)。赛后转换写成 schema v1：`{ schemaVersion: 1, map?, rounds }`。`rounds` 里每一项仍是上面的回合对象。赛后复盘页面读这份文档。当前命令行只接受回合数组，所以在它开始接受 schema v1 之前，转换时加上 `--array`。
+
+买法按冻结开始时的己方快照，和冻结结束后的实际花费来推断。没有 `money` 的队友会略过，不会写成 $0。花费是两侧都报了现金的队友的平均现金下降：
+
+- 手枪局（第 1、13 轮）：花费 ≥ $800 为 `full`，≥ $300 为 `force`，否则为 `eco`。
+- 其他回合：花费 ≥ 步枪加头盔（T $3700 / CT $3900）为 `full`，≥ 冲锋枪加护甲（T $1700 / CT $1900）为 `force`。
+- 若每个报了现金的队友也都报了武器，其中至少 60% 在冻结前已经有主武器，买完后仍是如此，且花费低于强起线，记为 `save`。有人报了现金但没有武器列表时，不记为存枪。
+- 其余为 `eco`。算不出花费时，用买完后的平均 `equip_value` 套同一条分界。
+
+胜方按该轮己方（半场交换后跟着同一名玩家的新阵营）写成 `us` 或 `them`。暖机不算回合。重连时较旧的回合包不会覆盖买前快照。没有买前快照或没有胜负的回合会略过。比分回到第 1 轮或地图名变了之后，只输出后面那场。
+
+The listener does not write a file unless you pass `--record`. Each accepted GSI payload is appended as JSONL (`v: 1`, `receivedAt`, and the `payload` with the token, positions, facing, and grenades removed). The field list is in the [GSI readme](packages/gsi/README.md). Conversion writes schema v1: `{ schemaVersion: 1, map?, rounds }`. Each entry in `rounds` is the round object above. The review page reads that document. The CLI on this branch still accepts only the bare array, so pass `--array` until it accepts schema v1.
+
+The buy is inferred from the own-side snapshot at the start of freeze and the cash actually spent by the time freeze ends. A teammate with no `money` field is omitted, not stored as $0. Spend is the average cash drop among teammates who reported cash both times:
+
+- Pistol rounds (1 and 13): spend ≥ $800 is `full`, ≥ $300 is `force`, otherwise `eco`.
+- Other rounds: spend ≥ rifle + helmet (T $3700 / CT $3900) is `full`, and spend ≥ SMG + kevlar (T $1700 / CT $1900) is `force`.
+- If every teammate who reported cash also reported weapons, at least 60% of them already held a primary, they still do after the buy, and the spend is below the force line, the buy is `save`. A teammate who reported cash but no weapon list blocks that save.
+- Otherwise it is `eco`. When the spend cannot be computed, the same lines are applied to the average `equip_value` after the buy.
+
+The winner is `us` or `them` for the side you were on that round. After halftime that side follows the same player onto the new team. Warmup is not a round. A reconnect packet for an older round does not replace the pre-buy snapshot. Rounds with no pre-buy snapshot or no winner are left out. If the score returns to round 1, or the map name changes, only the later match is written.
+
+```bash
+npm run dev -w @roundmind/gsi -- --token roundmind-local-dev --record ./match.jsonl
+npm run convert -w @roundmind/gsi -- ./match.jsonl --out ./match.json
+npm run convert -w @roundmind/gsi -- ./match.jsonl --array --out ./rounds.json
+npm run review -w @roundmind/post-match -- ./rounds.json
+```
 
 ## 项目状态 / Project status
 

@@ -1,6 +1,7 @@
 import { timingSafeEqual } from 'node:crypto';
 import http from 'node:http';
 import { GsiNormalizeError, normalizeGsiPayload } from './normalize.js';
+import { sanitizeRecordedPayload } from './record.js';
 import { ScoreHistory } from './score-history.js';
 import { renderSmokePage } from './smoke-page.js';
 import type { GameState } from './types.js';
@@ -19,6 +20,11 @@ export interface GsiServerOptions {
   authToken?: string;
   /** Called after a payload is stored. Receives its own copy of the state. */
   onState?: (state: GameState) => void;
+  /**
+   * Called after a payload is accepted. `payload` already has the auth token,
+   * positions, facing, and grenades removed. `receivedAt` is the accept time.
+   */
+  onAccepted?: (event: { payload: unknown; receivedAt: Date; state: GameState }) => void;
 }
 
 export interface ListeningAddress {
@@ -141,6 +147,16 @@ export class GsiServer {
     }
 
     this.latest = state;
+    const receivedAt = new Date();
+    try {
+      this.options.onAccepted?.({
+        payload: sanitizeRecordedPayload(payload),
+        receivedAt,
+        state: structuredClone(state),
+      });
+    } catch (error) {
+      console.error('[gsi] recording listener failed', error);
+    }
     try {
       this.options.onState?.(structuredClone(state));
     } catch (error) {
