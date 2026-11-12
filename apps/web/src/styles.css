@@ -144,6 +144,11 @@ h3 { margin: 16px 0 10px; }
   padding: 8px 14px;
 }
 
+.segment button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .lang button[aria-pressed="true"],
 .segment button[aria-pressed="true"],
 .yn button[aria-pressed="true"],

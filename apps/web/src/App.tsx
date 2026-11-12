@@ -30,10 +30,12 @@ import {
   roundPhase,
   scoreLine,
   sideLabel,
+  readStoredLang,
+  storeLang,
   warningText,
   type Lang,
 } from "./i18n";
-import { GSI_POLL_MS, fetchLiveBody, gameStateToFreeze, samePoll, type Poll } from "./gsi";
+import { GSI_POLL_MS, fetchLiveBody, gameStateToFreeze, isPublicPagesBuild, samePoll, type Poll } from "./gsi";
 import {
   affordance,
   applyAlive,
@@ -61,7 +63,8 @@ function fromSnapshot(snapshot: FreezeSnapshot) {
 }
 
 export function App() {
-  const [lang, setLang] = useState<Lang>("zh");
+  const pages = isPublicPagesBuild();
+  const [lang, setLang] = useState<Lang>(() => readStoredLang());
   const [mode, setMode] = useState<"manual" | "live">("manual");
   const [poll, setPoll] = useState<Poll>({ state: "idle" });
   const [side, setSide] = useState<Side>("T");
@@ -79,6 +82,7 @@ export function App() {
   useEffect(() => {
     document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
     document.title = text.docTitle;
+    storeLang(lang);
   }, [lang, text.docTitle]);
 
   useEffect(() => {
@@ -132,6 +136,7 @@ export function App() {
   const activePlayers = liveSnapshot?.ourPlayers ?? players;
 
   function selectMode(next: "manual" | "live") {
+    if (next === "live" && pages) return;
     setMode(next);
     if (next === "live") setPreset("");
   }
@@ -201,9 +206,17 @@ export function App() {
             <h2 id="freeze-title">{text.thisFreeze}</h2>
             <div className="segment" role="group" aria-label={text.source}>
               <button type="button" aria-pressed={mode === "manual"} onClick={() => selectMode("manual")}>{text.manual}</button>
-              <button type="button" aria-pressed={mode === "live"} onClick={() => selectMode("live")}>{text.live}</button>
+              <button
+                type="button"
+                aria-pressed={mode === "live"}
+                disabled={pages}
+                aria-describedby="gsi-note"
+                onClick={() => selectMode("live")}
+              >
+                {text.live}
+              </button>
             </div>
-            <p className="local">{text.localOnly}</p>
+            <p className="local" id="gsi-note">{pages ? text.pagesLive : text.localOnly}</p>
             {status && <p className="status" data-testid="gsi-status" role="status">{status}</p>}
             {parsed?.ok && parsed.usedFallbackSide && <p className="status">{text.statusFallbackSide}</p>}
           </div>

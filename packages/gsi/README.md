@@ -102,7 +102,7 @@ Build this package first so `dist/` exists, or depend on it from a workspace and
 
 ## toFreezeSnapshot
 
-`@roundmind/engine` (engine PR, not merged into this branch) exports `evaluateFreeze(snapshot)`. Enemy cash is never an input. This package does not implement that function and does not add a second engine API. ahi's post-match review assumed `recommend` / `evaluateBuyOptions`; adapt that review to `evaluateFreeze` rather than teaching GSI a parallel shape.
+`@roundmind/engine` exports `evaluateFreeze(snapshot)` and `evaluateBuyOptions(snapshot)`. Enemy cash is never an input. This package does not implement those functions and does not add a second engine API. Post-match review ranks the buy that was played with `evaluateBuyOptions`. This listener only builds the snapshot those functions take.
 
 ```ts
 import { evaluateFreeze } from "@roundmind/engine";
@@ -136,7 +136,7 @@ advise(state).enemy.band;
 
 `alive` is set only when that side had five health values on the round-end payload. One player's health is not a team wipe. `bombPlanted` is set only when this process saw a plant. Kill rewards are not computed here.
 
-Until `packages/engine` is on `main`, install the two packages side by side. The snapshot type is structural: it matches `FreezeSnapshot` in the engine PR. Do not copy loss-bonus or weapon prices into `packages/gsi`.
+The snapshot type is structural: it matches `FreezeSnapshot` in `@roundmind/engine` on `main`. Do not copy loss-bonus or weapon prices into `packages/gsi`.
 
 ## Compliance
 

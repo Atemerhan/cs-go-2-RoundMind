@@ -219,7 +219,7 @@ function clampAlive(value: number | undefined, warnings: NormalizedRound["warnin
 
 export function normalizeRound(round: CompletedRound): NormalizedRound {
   const warnings: NormalizedRound["warnings"] = [];
-  let reason = round.reason;
+  const reason = round.reason;
   let bombPlanted =
     round.bombPlanted === true ||
     reason === "bomb_explode" ||

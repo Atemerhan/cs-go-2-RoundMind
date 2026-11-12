@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GSI_PROXY_PATH, GSI_STATE_URL, fetchLiveBody, gameStateToFreeze } from "./gsi";
+import { GSI_PROXY_PATH, GSI_STATE_URL, fetchLiveBody, gameStateToFreeze, isPublicPagesBuild } from "./gsi";
 
 function response(body: unknown, ok = true) {
   return { ok, text: async () => (typeof body === "string" ? body : JSON.stringify(body)) };
@@ -98,5 +98,19 @@ describe("game state to freeze snapshot", () => {
   it("treats null as a listener with no match yet", () => {
     expect(gameStateToFreeze(null)).toEqual({ ok: false, reason: "waiting" });
     expect(gameStateToFreeze({ provider: { name: "Counter-Strike 2" } })).toEqual({ ok: false, reason: "invalid" });
+  });
+});
+
+describe("public Pages build", () => {
+  it("keeps live GSI in local dev", () => {
+    expect(isPublicPagesBuild({ BASE_URL: "/" })).toBe(false);
+    expect(isPublicPagesBuild({})).toBe(false);
+  });
+
+  it("detects the Pages flag and the Pages base path", () => {
+    expect(isPublicPagesBuild({ VITE_PAGES: "1", BASE_URL: "/" })).toBe(true);
+    expect(isPublicPagesBuild({ VITE_PAGES: "true" })).toBe(true);
+    expect(isPublicPagesBuild({ VITE_PAGES: true })).toBe(true);
+    expect(isPublicPagesBuild({ BASE_URL: "/cs-go-2-RoundMind/" })).toBe(true);
   });
 });

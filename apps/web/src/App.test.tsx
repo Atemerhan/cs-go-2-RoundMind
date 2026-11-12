@@ -2,10 +2,13 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 import { GSI_PROXY_PATH } from "./gsi";
+import { LANG_STORAGE_KEY, readStoredLang, storeLang } from "./i18n";
 
 afterEach(() => {
   cleanup();
+  localStorage.clear();
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
   vi.restoreAllMocks();
 });
 
@@ -27,6 +30,48 @@ describe("calculator", () => {
     fireEvent.click(screen.getByRole("button", { name: "EN" }));
     expect(recommendation().textContent).toContain("Eco");
     expect(screen.getByText(/Not enough for a gun/)).toBeTruthy();
+  });
+
+  it("remembers the chosen language on the next visit", () => {
+    const first = render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: "EN" }));
+    expect(localStorage.getItem(LANG_STORAGE_KEY)).toBe("en");
+    first.unmount();
+    render(<App />);
+    expect(screen.getByRole("button", { name: "EN" }).getAttribute("aria-pressed")).toBe("true");
+    expect(document.documentElement.lang).toBe("en");
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Freeze-time economy");
+  });
+
+  it("ignores a stored language that is not zh or en", () => {
+    const memory = new Map<string, string>();
+    const storage = {
+      getItem: (key: string) => memory.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        memory.set(key, value);
+      },
+    };
+    expect(readStoredLang(storage)).toBe("zh");
+    storeLang("en", storage);
+    expect(readStoredLang(storage)).toBe("en");
+    memory.set(LANG_STORAGE_KEY, "fr");
+    expect(readStoredLang(storage)).toBe("zh");
+    expect(readStoredLang({ getItem() { throw new Error("denied"); } })).toBe("zh");
+    expect(() => storeLang("zh", { setItem() { throw new Error("denied"); } })).not.toThrow();
+  });
+
+  it("disables live GSI on the public Pages build and explains why", () => {
+    vi.stubEnv("VITE_PAGES", "1");
+    render(<App />);
+    const live = screen.getByRole("button", { name: "本机直播（GSI）" });
+    expect(live).toHaveProperty("disabled", true);
+    expect(live.getAttribute("aria-pressed")).toBe("false");
+    expect(screen.getByText(/公开页面/)).toBeTruthy();
+    fireEvent.click(live);
+    expect(screen.queryByTestId("gsi-status")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "EN" }));
+    expect(screen.getByRole("button", { name: "Live (GSI)" })).toHaveProperty("disabled", true);
+    expect(screen.getByText(/cannot reach a listener/)).toBeTruthy();
   });
 
   it("full-buys the pistol preset", () => {
