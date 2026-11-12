@@ -30,6 +30,15 @@ export {
 export { ReviewError, type ReviewErrorCode } from "./errors.js";
 export { createFixtureLookupEngine, fixtureTable, type FixtureLookupEngine } from "./fixture-engine.js";
 export { blueprintMatch, blueprintRoundsForEngine, type FixtureRound } from "./fixtures.js";
+export {
+  MATCH_SCHEMA_VERSION,
+  MatchFileError,
+  parseMatchFile,
+  parseMatchJson,
+  type MatchDocument,
+  type MatchFileErrorCode,
+  type ParsedMatch,
+} from "./match-file.js";
 export { buyLabel, formatEv, narrateLeak } from "./narrate.js";
 export {
   EV_LEAK_EPSILON,

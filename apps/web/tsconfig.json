@@ -5,7 +5,8 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "baseUrl": ".",
     "paths": {
-      "@roundmind/engine": ["../../packages/engine/src/index.ts"]
+      "@roundmind/engine": ["../../packages/engine/src/index.ts"],
+      "@roundmind/post-match": ["../../post-match/src/index.ts"]
     },
     "types": ["vite/client"]
   },

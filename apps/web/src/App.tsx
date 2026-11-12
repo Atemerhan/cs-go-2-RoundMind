@@ -3,6 +3,7 @@ import {
   MAX_MONEY,
   PRICES,
   ecoSnapshot,
+  evaluateBuyOptions,
   evaluateFreeze,
   forceBuyCash,
   forceSnapshot,
@@ -12,11 +13,14 @@ import {
   pistolSnapshot,
   saveSnapshot,
   type BuyClass,
+  type BuyOption,
   type CompletedRound,
   type FreezeSnapshot,
   type RoundEndReason,
   type Side,
 } from "@roundmind/engine";
+import { BuyOptionScores } from "./BuyOptionScores";
+import { LanguageSwitch, ViewNav } from "./view-nav";
 import {
   buyLabel,
   copy,
@@ -128,6 +132,17 @@ export function App() {
     });
   }, [history, liveSnapshot, overtimeLimit, players, side]);
 
+  const options = useMemo(() => {
+    if (liveSnapshot) return evaluateBuyOptions(liveSnapshot);
+    return evaluateBuyOptions({
+      roundNumber: history.length + 1,
+      ourSide: side,
+      ourPlayers: players,
+      history,
+      overtimeLimit,
+    });
+  }, [history, liveSnapshot, overtimeLimit, players, side]);
+
   const activeSide = liveSnapshot?.ourSide ?? side;
   const activePlayers = liveSnapshot?.ourPlayers ?? players;
 
@@ -187,14 +202,14 @@ export function App() {
           <h1>{text.title}</h1>
           <p className="sub">{text.subtitle}</p>
         </div>
-        <div className="lang" role="group" aria-label={text.language}>
-          <button type="button" aria-pressed={lang === "zh"} onClick={() => setLang("zh")}>中文</button>
-          <button type="button" aria-pressed={lang === "en"} onClick={() => setLang("en")}>EN</button>
+        <div className="header-tools">
+          <ViewNav lang={lang} current="calculator" />
+          <LanguageSwitch lang={lang} onChange={setLang} />
         </div>
       </header>
 
       <div className="layout">
-        <Recommendation lang={lang} advice={advice} live={Boolean(liveSnapshot)} />
+        <Recommendation lang={lang} advice={advice} options={options} live={Boolean(liveSnapshot)} />
 
         <section className="panel work" aria-labelledby="freeze-title">
           <div className="source">
@@ -320,7 +335,7 @@ function liveStatus(lang: Lang, mode: "manual" | "live", poll: Poll, parsed: Ret
   return text.statusReady(parsed.snapshot.roundNumber, phaseLabel(lang, parsed.phase), sideLabel(lang, parsed.snapshot.ourSide));
 }
 
-function Recommendation(props: { lang: Lang; advice: ReturnType<typeof evaluateFreeze>; live: boolean }) {
+function Recommendation(props: { lang: Lang; advice: ReturnType<typeof evaluateFreeze>; options: readonly BuyOption[]; live: boolean }) {
   const text = copy(props.lang);
   const { advice } = props;
   const scale = Math.max(MAX_MONEY.value, 1);
@@ -340,6 +355,7 @@ function Recommendation(props: { lang: Lang; advice: ReturnType<typeof evaluateF
         <p className="call" data-testid="recommendation" data-buy={advice.buy ?? "none"}>{buyLabel(props.lang, advice.buy)}</p>
         <p className="sentence">{reasonText(props.lang, advice)}</p>
       </div>
+      <BuyOptionScores lang={props.lang} options={props.options} recommended={advice.buy} />
       <div className="enemy">
         <p className="eyebrow">{text.enemyEconomy}</p>
         <p className="band-figure" data-testid="enemy-band">{bandText}</p>

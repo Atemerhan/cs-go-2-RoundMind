@@ -3,15 +3,13 @@ import { resolve } from "node:path";
 import { evaluateBuyOptions, evaluateFreeze } from "@roundmind/engine";
 import { adaptEconomyEngine, EV_POINT_DOLLARS } from "./economy-engine.js";
 import { blueprintMatch } from "./fixtures.js";
+import { parseMatchJson } from "./match-file.js";
 import { formatEv } from "./narrate.js";
 import { reviewMatch, type PlayedRound } from "./review.js";
 
 function readRounds(file: string): PlayedRound[] {
-  const data: unknown = JSON.parse(readFileSync(resolve(process.env.INIT_CWD ?? process.cwd(), file), "utf8"));
-  if (!Array.isArray(data) || !data.every((round) => round && typeof round === "object" && !Array.isArray(round))) {
-    throw new Error("The match JSON must be an array of round objects.");
-  }
-  return data;
+  const text = readFileSync(resolve(process.env.INIT_CWD ?? process.cwd(), file), "utf8");
+  return parseMatchJson(text).rounds;
 }
 
 try {
