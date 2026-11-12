@@ -7,10 +7,12 @@ The package listens for Valve's JSON POST, normalizes it into a `GameState`, and
 ## Run the listener
 
 ```bash
+npm ci
 cd packages/gsi
-npm install
 npm run dev
 ```
+
+Install dependencies from the repository root. This package does not keep its own lockfile.
 
 That binds `http://127.0.0.1:3000`.
 
@@ -48,6 +50,16 @@ Copy [`examples/gamestate_integration_roundmind.cfg`](examples/gamestate_integra
 | macOS | `~/Library/Application Support/Steam/steamapps/common/Counter-Strike Global Offensive/game/csgo/cfg/` |
 
 The sample posts to `http://127.0.0.1:3000/gsi` with token `roundmind-local-dev`. Change the token in the cfg and pass the same value to `--token`.
+
+From the repository root, `npm run install-cfg` finds that cfg directory and writes the sample file. It reads Steam's `libraryfolders.vdf` from the usual Windows and Linux install locations, including the Windows registry Steam path. `--cfg-dir` or `--steam-dir` overrides discovery. `--dry-run` prints the target path and file contents and does not write. If `gamestate_integration_roundmind.cfg` already exists with different contents, the command leaves it in place unless `--force` is set. The same contents are left unchanged. Restart CS2 after a write. The command does not start the game or send input.
+
+```bash
+npm run install-cfg
+npm run install-cfg -- --dry-run
+npm run install-cfg -- --cfg-dir "/path/to/game/csgo/cfg"
+npm run install-cfg -- --steam-dir "/path/to/Steam"
+npm run install-cfg -- --force
+```
 
 Subscribed fields: provider, map, map round wins, round, phase countdowns, the focused player's id / state / weapons, all-player id / state / weapons, and bomb **state**. `player_position`, `allplayers_position`, and `allgrenades` are set to `"0"`.
 

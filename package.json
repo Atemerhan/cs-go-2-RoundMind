@@ -9,7 +9,8 @@
   "scripts": {
     "test": "npm test --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
-    "dev": "npm run dev -w @roundmind/web"
+    "dev": "npm run dev -w @roundmind/web",
+    "install-cfg": "npm run install-cfg -w @roundmind/gsi --"
   },
   "engines": {
     "node": ">=20"

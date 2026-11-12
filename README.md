@@ -30,9 +30,9 @@ npm run build
 npm run dev -w @roundmind/gsi -- --token roundmind-local-dev
 ```
 
-将[示例配置](packages/gsi/examples/gamestate_integration_roundmind.cfg)复制到 CS2 的 `game/csgo/cfg/`，确认配置中的 token 与监听器一致，再重启 CS2。网页选择「本机直播（GSI）」。监听器绑定到 `127.0.0.1:3000`，本地网页通过 `GET /gsi/state` 读取状态。
+将[示例配置](packages/gsi/examples/gamestate_integration_roundmind.cfg)复制到 CS2 的 `game/csgo/cfg/`，确认配置中的 token 与监听器一致，再重启 CS2。也可以在仓库根目录运行 `npm run install-cfg` 写入同一份文件；`npm run install-cfg -- --dry-run` 只打印目标路径和内容。网页选择「本机直播（GSI）」。监听器绑定到 `127.0.0.1:3000`，本地网页通过 `GET /gsi/state` 读取状态。
 
-Copy the [example config](packages/gsi/examples/gamestate_integration_roundmind.cfg) into CS2's `game/csgo/cfg/`, match the listener token, and restart CS2. Select **Live (GSI)** in the local calculator. The listener binds to `127.0.0.1:3000` and the local web app reads state through `GET /gsi/state`.
+Copy the [example config](packages/gsi/examples/gamestate_integration_roundmind.cfg) into CS2's `game/csgo/cfg/`, match the listener token, and restart CS2. From the repository root, `npm run install-cfg` writes that same file; `npm run install-cfg -- --dry-run` prints the target path and contents. Select **Live (GSI)** in the local calculator. The listener binds to `127.0.0.1:3000` and the local web app reads state through `GET /gsi/state`.
 
 不启动 CS2 也可以在第三个终端发送一份冻结时间样例。/ Send a freeze-time fixture from a third terminal to try it without CS2.
 
