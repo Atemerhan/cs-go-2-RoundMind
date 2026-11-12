@@ -8,3 +8,4 @@ coverage/
 !.env.example
 *.log
 .vite/
+packages/*/package-lock.json

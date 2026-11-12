@@ -19,6 +19,7 @@
     "dev": "tsx src/cli.ts",
     "start": "node dist/cli.js",
     "mock": "tsx src/cli.ts --mock",
+    "install-cfg": "tsx src/install-cfg.ts",
     "test": "vitest run && tsc -p tsconfig.json --noEmit",
     "test:watch": "vitest"
   },
