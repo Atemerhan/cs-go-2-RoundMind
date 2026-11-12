@@ -2,6 +2,35 @@ import type { BuyClass, CompletedRound, FreezeAdvice, ReasonCode, RoundEndReason
 
 export type Lang = "zh" | "en";
 
+export const LANG_STORAGE_KEY = "roundmind.lang";
+
+export function readStoredLang(storage: Pick<Storage, "getItem"> | null = browserStorage()): Lang {
+  try {
+    const value = storage?.getItem(LANG_STORAGE_KEY);
+    if (value === "zh" || value === "en") return value;
+  } catch {
+    // Private mode and disabled storage can throw.
+  }
+  return "zh";
+}
+
+export function storeLang(lang: Lang, storage: Pick<Storage, "setItem"> | null = browserStorage()): void {
+  try {
+    storage?.setItem(LANG_STORAGE_KEY, lang);
+  } catch {
+    // Ignore quota and private-mode failures. The current visit still switches.
+  }
+}
+
+function browserStorage(): Storage | null {
+  try {
+    if (typeof localStorage === "undefined") return null;
+    return localStorage;
+  } catch {
+    return null;
+  }
+}
+
 export function money(value: number): string {
   return `$${Math.round(value).toLocaleString("en-US")}`;
 }
@@ -261,6 +290,7 @@ export interface Copy {
   manual: string;
   live: string;
   localOnly: string;
+  pagesLive: string;
   statusConnecting: string;
   statusDown: string;
   statusWaiting: string;
@@ -343,13 +373,14 @@ const zhCopy: Copy = {
   enemyLosses: "对方连败计数",
   unverified: "未核实",
   disclaimer: "超时加钱扣给谁、连败计数会不会封顶、加时连败计数会不会归零，都还没核实。建议不把这些当成事实。",
-  compliance: "RoundMind 只做赛前和冻结时间的决策辅助。以后只接官方 Game State Integration。不读内存，不注入，不模拟键鼠，不提供敌人位置或准星。玩家自己下单。",
+  compliance: "RoundMind 只做冻结时间的购买建议和赛后复盘。本地计算器可以读取官方 Game State Integration。不读内存，不注入，不模拟键鼠，不提供敌人位置或准星。玩家自己下单。",
   helmet: "头甲",
   kit: "拆弹器",
   source: "建议来源",
   manual: "手动",
   live: "本机直播（GSI）",
   localOnly: "只读本机 http://127.0.0.1:3000/state。不上传，不读内存。监听不在时用手动表。",
+  pagesLive: "公开页面连不上你电脑上的监听。本机直播只在本地运行网页时可用。",
   statusConnecting: "正在连接本机监听…",
   statusDown: "监听没开，正在用手动表。",
   statusWaiting: "监听在，还没有对局，正在用手动表。",
@@ -432,13 +463,14 @@ const enCopy: Copy = {
   enemyLosses: "Enemy loss count",
   unverified: "Unverified",
   disclaimer: "Who gets the +$0 timeout line, whether a deep loss count is stored capped, and whether overtime resets that count are unverified. The call does not treat them as facts.",
-  compliance: "RoundMind is coaching for the buy phase and review. A later build may read official Game State Integration only. No memory reading, no injection, no input automation, no enemy positions or crosshair help. The player makes every action.",
+  compliance: "RoundMind coaches freeze-time buys and post-match review. The local calculator can read official Game State Integration. No memory reading, no injection, no input automation, no enemy positions or crosshair help. The player makes every action.",
   helmet: "Helmet",
   kit: "Kit",
   source: "Call source",
   manual: "Manual",
   live: "Live (GSI)",
   localOnly: "Read-only http://127.0.0.1:3000/state on this machine. Nothing is uploaded. No memory reading. If the listener is down, the manual form is the call.",
+  pagesLive: "This public page cannot reach a listener on your computer. Live GSI is available when you run the app locally.",
   statusConnecting: "Connecting to the local listener…",
   statusDown: "Listener is down. Using the manual form.",
   statusWaiting: "Listener is up, but no match yet. Using the manual form.",

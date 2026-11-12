@@ -28,7 +28,7 @@ export interface KillTally {
 
 /**
  * One completed bomb-defusal round. Public information only.
- * A future official GSI adapter fills this from the round log it stores.
+ * The local GSI adapter in `packages/gsi` fills this from the round log it stores.
  * Do not put enemy positions, view angles, or memory-read fields here.
  */
 export interface CompletedRound {
@@ -55,7 +55,7 @@ export interface CompletedRound {
 
 /** One of our players at freeze time. Own-team cash is visible to GSI. */
 export interface PlayerSnapshot {
-  /** Stable id from a future GSI adapter (for example a Steam id). */
+  /** Stable id from the GSI adapter (for example a Steam id). */
   id?: string;
   /** Cash the player is holding right now, before this freeze's purchases. */
   cash: number;
@@ -66,9 +66,8 @@ export interface PlayerSnapshot {
 }
 
 /**
- * Freeze-time input. This is the contract a later official GSI ingest
- * should produce. The engine does not open a socket and does not read
- * the game process.
+ * Freeze-time input. `packages/gsi` produces this with `toFreezeSnapshot`.
+ * The engine does not open a socket and does not read the game process.
  */
 export interface FreezeSnapshot {
   /** 1-based round that is about to be played. */

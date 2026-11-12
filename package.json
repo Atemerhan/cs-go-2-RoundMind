@@ -7,11 +7,23 @@
     "post-match"
   ],
   "scripts": {
+    "lint": "eslint .",
     "test": "npm test --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
     "dev": "npm run dev -w @roundmind/web"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.12"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "typescript-eslint": "^8.72.2"
+  },
+  "overrides": {
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "11.0.8"
+    }
   }
 }

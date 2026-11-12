@@ -4,9 +4,13 @@ RoundMind 是 CS2 Premier / Competitive 爆破模式的冻结时间经济教练�
 
 RoundMind is a freeze-time economy coach for CS2 Premier and Competitive defusal matches. Möbi uses your side's cash, equipment, and completed rounds to suggest a full buy, force buy, eco, or save, with a short explanation. Opponent economy is shown as an estimated range.
 
+公开计算器：<https://atemerhan.github.io/cs-go-2-RoundMind/>。公开页面只有手动试算。本机直播要在本地跑网页和监听器。
+
+Public calculator: <https://atemerhan.github.io/cs-go-2-RoundMind/>. The public page is the manual calculator. Live GSI runs when you start the web app and the listener locally.
+
 ## 本地试玩 / Run locally
 
-需要 Node.js 22（与 CI 一致）。/ Use Node.js 22 to match CI.
+需要 Node.js 22.12 或更新（与 CI 和 Vitest 5 一致）。/ Use Node.js 22.12 or newer to match CI and Vitest 5.
 
 ```bash
 npm ci
@@ -90,6 +94,10 @@ npm run review -w @roundmind/post-match -- ./match.json
 
 ### GitHub Pages
 
-Pages 只发布手动计算器的静态构建，本机 GSI 用本地网页体验。现有工作流已成功构建并上传产物，部署阶段返回 404。启用前先确认私有仓库支持 Pages，再在 [Settings → Pages](https://github.com/Atemerhan/cs-go-2-RoundMind/settings/pages) 将 Source 设为 **GitHub Actions**。配置后可重新运行 [Pages 工作流](https://github.com/Atemerhan/cs-go-2-RoundMind/actions/workflows/pages.yml)。
+公开计算器已经在线：<https://atemerhan.github.io/cs-go-2-RoundMind/>。仓库是公开的。Pages 的 Source 是 **GitHub Actions**，工作流是 [pages.yml](.github/workflows/pages.yml)，产物是 `apps/web` 的静态构建。
 
-Pages serves the static manual calculator. Use the local web app for GSI. The existing workflow built and uploaded the artifact, then received a 404 from the deployment endpoint. Confirm Pages is available for this private repository and set **GitHub Actions** as the source before rerunning the workflow. See [GitHub's Pages setup guide](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
+公开页面连不上你电脑上的 `127.0.0.1:3000`，所以「本机直播（GSI）」在 Pages 构建里是停用的，并写明原因。要看直播建议，在本地运行 `npm run dev` 和监听器。
+
+The public calculator is live at <https://atemerhan.github.io/cs-go-2-RoundMind/>. The repository is public. Pages uses **GitHub Actions** as its source. The workflow is [pages.yml](.github/workflows/pages.yml), and it publishes the static `apps/web` build.
+
+That page cannot reach a listener on your computer at `127.0.0.1:3000`, so **Live (GSI)** is disabled on the Pages build and the page explains why. Run `npm run dev` and the listener locally for live advice.

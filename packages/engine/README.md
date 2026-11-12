@@ -2,9 +2,9 @@
 
 Deterministic CS2 Premier bomb-defusal economy. No DOM, no network, no game process.
 
-A later official GSI adapter should fill `FreezeSnapshot` and call `evaluateFreeze`. Post-match review can pass that same snapshot to `evaluateBuyOptions` and rank the buy the team actually made. This package does not open a socket and does not read memory. Enemy positions are not a field on the input.
+[`packages/gsi`](../gsi/README.md) fills `FreezeSnapshot` from the local read-only Game State Integration listener and calls `evaluateFreeze`. Post-match review passes that same snapshot to `evaluateBuyOptions` and ranks the buy the team actually made. This package does not open a socket and does not read memory. Enemy positions are not a field on the input.
 
-Numeric status matches the sources doc (`docs/economy-rules.json` on the docs branch). This package does not own that file. Anything the sources pass left open is `unverified` in `src/rules.ts` and is not treated as a fact by the buy call.
+Numeric status matches [`docs/economy-rules.json`](../../docs/economy-rules.json) on `main`. This package does not own that file. Anything the sources pass left open is `unverified` in `src/rules.ts` and is not treated as a fact by the buy call.
 
 ## Call
 
@@ -70,9 +70,11 @@ On a live round the maximum is unique and is `evaluateFreeze(...).buy`. The valu
 
 When the roster is empty, the match is already over, or Premier has drawn, every `expectedValue` is 0 and `buy` is null.
 
-## Input a GSI adapter may fill
+## Input the local GSI adapter fills
 
-| Field | Source later | Never |
+`toFreezeSnapshot` in `packages/gsi` builds this object. The web calculator reads the same shape from the listener.
+
+| Field | Source | Never |
 | --- | --- | --- |
 | `roundNumber` | map round about to be played, 1-based | |
 | `ourSide` | the coached team this freeze | |

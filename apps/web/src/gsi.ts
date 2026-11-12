@@ -3,7 +3,7 @@ import type { CompletedRound, FreezeSnapshot, RoundEndReason, Side } from "@roun
 /**
  * Read the local listener's `GET /state` body and turn it into `evaluateFreeze` input.
  *
- * PR #4 (`@roundmind/gsi`) serves a normalized GameState at
+ * `@roundmind/gsi` serves a normalized GameState at
  * http://127.0.0.1:3000/state. This file does not listen, does not normalize
  * raw Valve payloads, and does not copy that package. Enemy cash is dropped.
  */
@@ -18,6 +18,20 @@ export const GSI_STATE_URL = "http://127.0.0.1:3000/state";
 export const GSI_PROXY_PATH = "/gsi/state";
 
 export const GSI_POLL_MS = 1000;
+
+/**
+ * GitHub Pages cannot reach a listener on the visitor's machine.
+ * The Pages workflow sets `VITE_PAGES=1` and `VITE_BASE=/cs-go-2-RoundMind/`.
+ * Local `npm run dev` leaves both unset, so Live GSI stays available.
+ */
+export function isPublicPagesBuild(
+  env: { BASE_URL?: string; VITE_PAGES?: string | boolean } = import.meta.env,
+): boolean {
+  const flag = env.VITE_PAGES;
+  if (flag === "1" || flag === "true" || flag === true) return true;
+  const base = typeof env.BASE_URL === "string" ? env.BASE_URL : "";
+  return base.includes("/cs-go-2-RoundMind");
+}
 
 const PRIMARY_TYPES = new Set([
   "rifle",
