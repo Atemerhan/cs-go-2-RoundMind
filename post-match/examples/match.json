@@ -1,0 +1,371 @@
+{
+  "schemaVersion": 1,
+  "label": "Sample match",
+  "rounds": [
+    {
+      "roundNumber": 5,
+      "winner": "us",
+      "chosenBuy": "eco",
+      "state": {
+        "roundNumber": 5,
+        "ourSide": "CT",
+        "overtimeLimit": 1,
+        "ourPlayers": [
+          {
+            "id": "p1",
+            "cash": 1800,
+            "hasPrimary": false
+          },
+          {
+            "id": "p2",
+            "cash": 1700,
+            "hasPrimary": false
+          },
+          {
+            "id": "p3",
+            "cash": 2100,
+            "hasPrimary": false
+          },
+          {
+            "id": "p4",
+            "cash": 1600,
+            "hasPrimary": false
+          },
+          {
+            "id": "p5",
+            "cash": 1900,
+            "hasPrimary": false
+          }
+        ],
+        "history": [
+          {
+            "winner": "T",
+            "reason": "elimination"
+          },
+          {
+            "winner": "CT",
+            "reason": "elimination"
+          },
+          {
+            "winner": "CT",
+            "reason": "bomb_defuse"
+          },
+          {
+            "winner": "CT",
+            "reason": "time",
+            "alive": {
+              "T": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "roundNumber": 7,
+      "winner": "them",
+      "chosenBuy": "full",
+      "state": {
+        "roundNumber": 7,
+        "ourSide": "CT",
+        "overtimeLimit": 1,
+        "ourPlayers": [
+          {
+            "id": "p1",
+            "cash": 4200,
+            "hasPrimary": true
+          },
+          {
+            "id": "p2",
+            "cash": 4600,
+            "hasPrimary": true
+          },
+          {
+            "id": "p3",
+            "cash": 3900,
+            "hasPrimary": true
+          },
+          {
+            "id": "p4",
+            "cash": 4400,
+            "hasPrimary": true
+          },
+          {
+            "id": "p5",
+            "cash": 800,
+            "hasPrimary": false
+          }
+        ],
+        "history": [
+          {
+            "winner": "T",
+            "reason": "elimination"
+          },
+          {
+            "winner": "CT",
+            "reason": "elimination"
+          },
+          {
+            "winner": "T",
+            "reason": "elimination"
+          },
+          {
+            "winner": "CT",
+            "reason": "elimination"
+          },
+          {
+            "winner": "T",
+            "reason": "bomb_explode"
+          },
+          {
+            "winner": "CT",
+            "reason": "elimination"
+          }
+        ]
+      }
+    },
+    {
+      "roundNumber": 9,
+      "winner": "us",
+      "chosenBuy": "force",
+      "state": {
+        "roundNumber": 9,
+        "ourSide": "CT",
+        "overtimeLimit": 1,
+        "ourPlayers": [
+          {
+            "id": "p1",
+            "cash": 2300,
+            "hasPrimary": true
+          },
+          {
+            "id": "p2",
+            "cash": 2100,
+            "hasPrimary": true
+          },
+          {
+            "id": "p3",
+            "cash": 2500,
+            "hasPrimary": false
+          },
+          {
+            "id": "p4",
+            "cash": 800,
+            "hasPrimary": false
+          },
+          {
+            "id": "p5",
+            "cash": 1900,
+            "hasPrimary": false
+          }
+        ],
+        "history": [
+          {
+            "winner": "T",
+            "reason": "elimination"
+          },
+          {
+            "winner": "CT",
+            "reason": "elimination"
+          },
+          {
+            "winner": "T",
+            "reason": "elimination"
+          },
+          {
+            "winner": "CT",
+            "reason": "elimination"
+          },
+          {
+            "winner": "T",
+            "reason": "elimination"
+          },
+          {
+            "winner": "CT",
+            "reason": "elimination"
+          },
+          {
+            "winner": "T",
+            "reason": "elimination"
+          },
+          {
+            "winner": "CT",
+            "reason": "time",
+            "alive": {
+              "T": 2
+            }
+          }
+        ]
+      }
+    },
+    {
+      "roundNumber": 11,
+      "winner": "them",
+      "chosenBuy": "full",
+      "state": {
+        "roundNumber": 11,
+        "ourSide": "CT",
+        "overtimeLimit": 1,
+        "ourPlayers": [
+          {
+            "id": "p1",
+            "cash": 3600,
+            "hasPrimary": true
+          },
+          {
+            "id": "p2",
+            "cash": 1500,
+            "hasPrimary": false
+          },
+          {
+            "id": "p3",
+            "cash": 1400,
+            "hasPrimary": false
+          },
+          {
+            "id": "p4",
+            "cash": 2800,
+            "hasPrimary": false
+          },
+          {
+            "id": "p5",
+            "cash": 1200,
+            "hasPrimary": false
+          }
+        ],
+        "history": [
+          {
+            "winner": "T",
+            "reason": "elimination"
+          },
+          {
+            "winner": "CT",
+            "reason": "elimination"
+          },
+          {
+            "winner": "T",
+            "reason": "elimination"
+          },
+          {
+            "winner": "CT",
+            "reason": "elimination"
+          },
+          {
+            "winner": "T",
+            "reason": "elimination"
+          },
+          {
+            "winner": "CT",
+            "reason": "elimination"
+          },
+          {
+            "winner": "T",
+            "reason": "elimination"
+          },
+          {
+            "winner": "CT",
+            "reason": "elimination"
+          },
+          {
+            "winner": "T",
+            "reason": "elimination"
+          },
+          {
+            "winner": "CT",
+            "reason": "bomb_defuse"
+          }
+        ]
+      }
+    },
+    {
+      "roundNumber": 14,
+      "winner": "them",
+      "chosenBuy": "save",
+      "state": {
+        "roundNumber": 14,
+        "ourSide": "CT",
+        "overtimeLimit": 1,
+        "ourPlayers": [
+          {
+            "id": "p1",
+            "cash": 4700,
+            "hasPrimary": false
+          },
+          {
+            "id": "p2",
+            "cash": 4500,
+            "hasPrimary": false
+          },
+          {
+            "id": "p3",
+            "cash": 4300,
+            "hasPrimary": false
+          },
+          {
+            "id": "p4",
+            "cash": 4100,
+            "hasPrimary": false
+          },
+          {
+            "id": "p5",
+            "cash": 3900,
+            "hasPrimary": false
+          }
+        ],
+        "history": [
+          {
+            "winner": "T",
+            "reason": "elimination"
+          },
+          {
+            "winner": "CT",
+            "reason": "elimination"
+          },
+          {
+            "winner": "T",
+            "reason": "elimination"
+          },
+          {
+            "winner": "CT",
+            "reason": "elimination"
+          },
+          {
+            "winner": "T",
+            "reason": "elimination"
+          },
+          {
+            "winner": "CT",
+            "reason": "elimination"
+          },
+          {
+            "winner": "T",
+            "reason": "elimination"
+          },
+          {
+            "winner": "CT",
+            "reason": "elimination"
+          },
+          {
+            "winner": "T",
+            "reason": "elimination"
+          },
+          {
+            "winner": "CT",
+            "reason": "elimination"
+          },
+          {
+            "winner": "T",
+            "reason": "elimination"
+          },
+          {
+            "winner": "T",
+            "reason": "bomb_explode"
+          },
+          {
+            "winner": "CT",
+            "reason": "elimination"
+          }
+        ]
+      }
+    }
+  ]
+}

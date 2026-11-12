@@ -1,0 +1,218 @@
+.header-tools {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.views {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.views a,
+.file-choice,
+.download {
+  color: var(--muted);
+  text-decoration: none;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-2);
+}
+
+.views a[aria-current="page"] {
+  background: var(--gold);
+  color: var(--ink-on-gold);
+}
+
+.drop {
+  margin-top: 12px;
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  background: #100e0b;
+}
+
+.drop-on {
+  border-color: var(--gold);
+  background: rgba(224, 194, 122, 0.08);
+}
+
+.drop-lead { margin: 0; }
+
+.drop-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.file-choice { cursor: pointer; position: relative; overflow: hidden; }
+.file-choice input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.download { border-radius: 999px; }
+
+.match-error {
+  margin: 12px 0 0;
+  color: var(--ink);
+  border: 1px solid var(--force-line);
+  background: var(--force-bg);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.highlights {
+  margin: 8px 0 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 6px;
+}
+
+.highlights button {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--gold-2);
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.review-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+  display: grid;
+  gap: 16px;
+}
+
+.round-card { scroll-margin-top: 12px; }
+
+.round-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.round-head h2 {
+  font-family: "Liberation Serif", "Noto Serif", "WenQuanYi Micro Hei", serif;
+  font-size: 1.6rem;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.result {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.result-us { color: var(--save); }
+.result-them { color: var(--force); }
+
+.economy { margin-top: 12px; }
+
+.decision {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.decision > div {
+  background: #100e0b;
+  border-radius: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-soft);
+}
+
+.decision > div[data-role="recommended"] { border-color: var(--gold); }
+.decision > div[data-role="played"][data-matched="false"] { border-color: var(--force-line); }
+
+.call.compact {
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  margin: 6px 0;
+}
+
+.decision .score-num {
+  display: block;
+  margin: 0;
+  text-align: left;
+}
+
+.scores-block { margin-top: 14px; }
+
+.buy-scores {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: grid;
+  gap: 6px;
+}
+
+.buy-scores li {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(48px, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--line-soft);
+  background: #100e0b;
+}
+
+.buy-scores li[data-best="true"] {
+  border-color: var(--gold);
+  background: rgba(224, 194, 122, 0.1);
+}
+
+.score-name { font-weight: 650; }
+
+.score-track {
+  height: 8px;
+  border-radius: 999px;
+  background: #2a261e;
+  overflow: hidden;
+}
+
+.score-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #8d7040, var(--gold-2));
+}
+
+.score-num {
+  font-variant-numeric: tabular-nums;
+  min-width: 3.2rem;
+  text-align: right;
+}
+
+.score-gap {
+  color: var(--muted);
+  font-size: 13px;
+  min-width: 5.5rem;
+  text-align: right;
+}
+
+.buy-scores li[data-best="true"] .score-gap { color: var(--gold-2); }
+
+@media (max-width: 879px) {
+  .header-tools { align-items: flex-start; }
+  .decision { grid-template-columns: 1fr; }
+  .buy-scores li { grid-template-columns: 4.2rem minmax(0, 1fr) auto; }
+  .score-gap { grid-column: 1 / -1; text-align: left; min-width: 0; }
+}

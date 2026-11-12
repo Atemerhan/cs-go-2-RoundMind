@@ -7,6 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@roundmind/engine": path.resolve(__dirname, "../../packages/engine/src/index.ts"),
+      "@roundmind/post-match": path.resolve(__dirname, "../../post-match/src/index.ts"),
     },
   },
   test: {

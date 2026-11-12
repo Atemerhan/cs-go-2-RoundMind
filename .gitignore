@@ -8,3 +8,4 @@ coverage/
 !.env.example
 *.log
 .vite/
+apps/web/public/sample-match.json
